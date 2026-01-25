@@ -1,0 +1,67 @@
+{
+  "itemGroup.hbs_traveler_rewards.hbs_traveler_rewards": "HB's Traveler Rewards",
+  "item.hbs_traveler_rewards.enchanted_essence": "Enchanted Essence",
+  "item.hbs_traveler_rewards.enchanted_essence.desc": "A dust pile crafted from lapis, redstone, and amethyst",
+  
+  "item.hbs_traveler_rewards.iron_bloom": "Iron Bloom",
+  "item.hbs_traveler_rewards.iron_bloom.desc": "Fractional portion of an ingot for repairs",
+  
+  "item.hbs_traveler_rewards.diamond_shard": "Diamond Shard",
+  "item.hbs_traveler_rewards.diamond_shard.desc": "Fractional portion of a diamond for repairs",
+  
+  "item.hbs_traveler_rewards.savior_orb": "Savior Orb",
+  "item.hbs_traveler_rewards.savior_orb.desc": "Saves items on death and tries to reunite with you",
+  
+  "item.hbs_traveler_rewards.pure_heart": "Pure Heart",
+  "item.hbs_traveler_rewards.pure_heart.desc": "Grants an extra heart of health",
+  "item.hbs_traveler_rewards.pure_heart.success": "You have gained %s extra hearts!",
+  
+  "item.hbs_traveler_rewards.soulbound_ritual_tablet": "Soulbound Ritual Tablet",
+  "item.hbs_traveler_rewards.soulbound_ritual_tablet.desc": "Marks the current slot as soulbound",
+  "item.hbs_traveler_rewards.soulbound_ritual_tablet.success": "Slot %s is now soulbound!",
+  "item.hbs_traveler_rewards.soulbound_ritual_tablet.already_bound": "This slot is already soulbound",
+  
+  "item.hbs_traveler_rewards.fabrication_ritual_tablet": "Fabrication Ritual Tablet",
+  "item.hbs_traveler_rewards.fabrication_ritual_tablet.desc": "Duplicates chest contents",
+  "item.hbs_traveler_rewards.fabrication_ritual_tablet.success": "Duplicated %s items!",
+  "item.hbs_traveler_rewards.fabrication_ritual_tablet.chest_full": "Chest is full, cannot duplicate",
+  "item.hbs_traveler_rewards.fabrication_ritual_tablet.invalid_target": "Must be used on a chest",
+  
+  "item.hbs_traveler_rewards.potion_pot": "Potion Pot",
+  "item.hbs_traveler_rewards.potion_pot.desc": "Cooks potions, breaks on use",
+  "item.hbs_traveler_rewards.potion_pot.brewing": "Brewing...",
+  
+  "item.hbs_traveler_rewards.escape_rope": "Escape Rope",
+  "item.hbs_traveler_rewards.escape_rope.desc": "Escape a structure at full health",
+  "item.hbs_traveler_rewards.escape_rope.success": "Escaped successfully!",
+  "item.hbs_traveler_rewards.escape_rope.not_full_health": "You must be at full health to escape",
+  "item.hbs_traveler_rewards.escape_rope.no_safe_location": "Could not find a safe location",
+  
+  "item.hbs_traveler_rewards.whetstone": "Whetstone",
+  "item.hbs_traveler_rewards.whetstone.desc": "Adds Sharpness in an anvil",
+  
+  "item.hbs_traveler_rewards.bracing": "Bracing",
+  "item.hbs_traveler_rewards.bracing.desc": "Adds Unbreaking in an anvil",
+  
+  "item.hbs_traveler_rewards.hourglass": "Hourglass",
+  "item.hbs_traveler_rewards.hourglass.desc": "Adds Lasting in an anvil",
+  
+  "item.hbs_traveler_rewards.netherite_whetstone": "Netherite Whetstone",
+  "item.hbs_traveler_rewards.netherite_whetstone.desc": "Adds greater Sharpness in an anvil",
+  
+  "item.hbs_traveler_rewards.netherite_bracing": "Netherite Bracing",
+  "item.hbs_traveler_rewards.netherite_bracing.desc": "Adds greater Unbreaking in an anvil",
+  
+  "item.hbs_traveler_rewards.diamond_hourglass": "Diamond Hourglass",
+  "item.hbs_traveler_rewards.diamond_hourglass.desc": "Adds greater Lasting in an anvil",
+  
+  "item.hbs_traveler_rewards.mob_ward": "Mob Ward",
+  "item.hbs_traveler_rewards.mob_ward.desc": "Wards away mobs that drop the contained item",
+  
+  "item.hbs_traveler_rewards.empty_totem": "Empty Totem",
+  "item.hbs_traveler_rewards.empty_totem.desc": "Wraps items to preserve or halt their effects",
+  
+  "item.hbs_traveler_rewards.contains": "Contains: %s",
+  "item.hbs_traveler_rewards.empty": "Empty",
+  "item.hbs_traveler_rewards.tier": "Tier %s"
+}

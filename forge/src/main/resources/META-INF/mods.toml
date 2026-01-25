@@ -38,7 +38,7 @@ ordering="NONE"
 side="BOTH"
 [[dependencies.${mod_id}]]
 modId="artifacts"
-mandatory=true
+mandatory=false
 versionRange="[${artifacts_version},)"
 ordering="NONE"
 side="BOTH"

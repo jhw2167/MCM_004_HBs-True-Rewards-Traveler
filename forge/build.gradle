@@ -90,7 +90,9 @@ dependencies {
         transitive = false
     }
 
-    implementation fg.deobf("curse.maven:artifacts-${artifacts_pid}:${artifacts_fid}")
+    compileOnly( fg.deobf("curse.maven:artifacts-${artifacts_pid}:${artifacts_fid}") ) {
+        transitive = false
+    }
 
 }
 

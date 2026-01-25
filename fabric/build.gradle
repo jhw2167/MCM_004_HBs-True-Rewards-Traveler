@@ -27,7 +27,7 @@ dependencies {
         changing = true
     }
 
-    modImplementation ("maven.modrinth:artifacts:${artifacts_version}")
+    //modImplementation ("maven.modrinth:artifacts:${artifacts_version}")
 }
 
 loom {
