@@ -14,9 +14,7 @@ public class ModBlockEntities {
 
     public static void initialize(BalmBlockEntities blockEntities)
     {
-        templateChest =  blockEntities
-            .registerBlockEntity( id("template_chest"), TemplateBlockEntity::new,
-                () -> new Block[]{ModBlocks.templateBlock} );
+        //templateChest =  blockEntities.registerBlockEntity( id("template_chest"), TemplateBlockEntity::new, () -> new Block[]{ModBlocks.templateBlock} );
 
 
     }

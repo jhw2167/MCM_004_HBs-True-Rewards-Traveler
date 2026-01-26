@@ -24,16 +24,12 @@ public class SoulboundRitualTabletItem extends InteractiveRewardItem {
 
     @Override
     protected InteractionResult onRightClickAir(Level level, Player player, InteractionHand hand, ItemStack stack) {
-        if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
-            return markSlotAsSoulbound(serverPlayer, hand);
+        if (player instanceof ServerPlayer serverPlayer) {
+            ManagedTraveler.useSoulboundTablet(serverPlayer, hand, stack);
+            //remove item
+            stack.shrink(1);
         }
         return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
-    }
-
-    private InteractionResult markSlotAsSoulbound(ServerPlayer player, InteractionHand hand) {
-        ManagedTraveler mp = ManagedTraveler.getManagedTraveler(player);
-        mp.addSoulboundSlot(player.getInventory().selected);
-        return InteractionResult.CONSUME;
     }
 
     /**

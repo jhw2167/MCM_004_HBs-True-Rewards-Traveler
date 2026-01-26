@@ -3,20 +3,19 @@ package com.holybuckets.traveler;
 
 import com.holybuckets.foundation.event.EventRegistrar;
 import com.holybuckets.traveler.config.TemplateConfig;
-import net.blay09.mods.balm.api.Balm;
-import net.blay09.mods.balm.api.event.EventPriority;
+import com.holybuckets.traveler.core.ManagedTraveler;
 import net.blay09.mods.balm.api.event.server.ServerStartingEvent;
 
 /**
  * Main instance of the mod, initialize this class statically via commonClass
  * This class will init all major Manager instances and events for the mod
  */
-public class TemplateMain {
+public class TravelerRewardsMain {
     private static boolean DEV_MODE = false;;
     private static TemplateConfig CONFIG;
-    public static TemplateMain INSTANCE;
+    public static TravelerRewardsMain INSTANCE;
 
-    public TemplateMain()
+    public TravelerRewardsMain()
     {
         super();
         INSTANCE = this;
@@ -38,6 +37,7 @@ public class TemplateMain {
         //Events
         EventRegistrar registrar = EventRegistrar.getInstance();
         //ChallengeBlockBehavior.init(registrar);
+        ManagedTraveler.init(registrar);
 
 
         //register local events
@@ -46,7 +46,7 @@ public class TemplateMain {
     }
 
     private void onServerStarting(ServerStartingEvent e) {
-        CONFIG = Balm.getConfig().getActiveConfig(TemplateConfig.class);
+        //CONFIG = Balm.getConfig().getActiveConfig(TemplateConfig.class);
         //this.DEV_MODE = CONFIG.devMode;
         this.DEV_MODE = false;
     }

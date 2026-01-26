@@ -4,10 +4,17 @@ import com.holybuckets.foundation.HBUtil;
 import com.holybuckets.foundation.LoggerBase;
 import com.holybuckets.foundation.event.EventRegistrar;
 import com.holybuckets.foundation.modelInterface.IManagedPlayer;
-import net.blay09.mods.balm.api.event.LivingDeathEvent;
+import com.holybuckets.foundation.player.ManagedPlayer;
+import com.holybuckets.traveler.LoggerProject;
+import io.netty.util.collection.IntObjectHashMap;
+import io.netty.util.collection.IntObjectMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -34,45 +41,53 @@ public class ManagedTraveler implements IManagedPlayer {
     private static final String MOD_DATA_KEY = "hbs_traveler_rewards";
 
     // Static registry of all travelers
-    static final Map<Player, ManagedTraveler> TRAVELERS = new ConcurrentHashMap<>();
+    static final Map<String, ManagedTraveler> TRAVELERS = new ConcurrentHashMap<>();
 
     // Player reference
     private Player player;
-
-    // Soulbound slot tracking (slot index -> is soulbound)
-    private final Set<Integer> soulboundSlots;
-
-    // Death location tracking for Savior Orb
-    private DeathLocation lastDeathLocation;
-
-    // Pure Heart tracking
-    private int pureHeartsConsumed;
+    private static Player localPlayer;
+    public static ManagedTraveler localTraveler;
+    private final Set<Integer> soulboundSlots; // Soulbound slot tracking (slot index -> is soulbound)
+    private final IntObjectMap<ItemStack> soulboundItemsToReturn; //The items in the soulbound slots we must return to player. Must be careful if they leave the game after dying.
+    private DeathLocation lastDeathLocation; // Death location tracking for Savior Orb
+    private int pureHeartsConsumed; // Pure Heart tracking
 
     // Statistics
     private int totalDeaths;
-    private int itemsSavedBySoulbound;
 
     static {
-        registerManagedPlayerData(
-            ManagedTraveler.class,
-            () -> new ManagedTraveler(null)
-        );
+        registerManagedPlayerData( ManagedTraveler.class, () -> new ManagedTraveler(null) );
     }
 
     public ManagedTraveler(Player player) {
         this.player = player;
+        this.soulboundItemsToReturn = new IntObjectHashMap<>();
         this.soulboundSlots = new HashSet<>();
         this.lastDeathLocation = null;
         this.pureHeartsConsumed = 0;
         this.totalDeaths = 0;
-        this.itemsSavedBySoulbound = 0;
     }
 
     /**
      * Initialize event handlers
      */
     public static void init(EventRegistrar reg) {
-        reg.registerOnPlayerDeath(ManagedTraveler::onPlayerDeath);
+
+    }
+
+    private static final UUID PURE_HEART_MODIFIER_UUID = UUID.fromString("a3d89f7e-5c8d-4f3a-9b2e-1d4c6e8f0a1b");
+    private static final String PURE_HEART_MODIFIER_NAME = "Pure Heart";
+    private static final double HEALTH_PER_HEART = 2.0;
+    public static void usePureHeart(ServerPlayer player)
+    {
+        ManagedTraveler mt = ManagedTraveler.getManagedTraveler(player);
+        mt.addHealth(HEALTH_PER_HEART);
+    }
+
+    public static void useSoulboundTablet(ServerPlayer player, InteractionHand hand, ItemStack stack)
+    {
+        ManagedTraveler mt = ManagedTraveler.getManagedTraveler(player);
+        mt.addSoulboundSlot(hand, stack);
     }
 
     //** SOULBOUND SLOT MANAGEMENT
@@ -80,11 +95,26 @@ public class ManagedTraveler implements IManagedPlayer {
     /**
      * Marks a slot as soulbound (items in this slot survive death)
      */
-    public void addSoulboundSlot(int slotIndex) {
-        if (slotIndex >= 0 && slotIndex < 41) { // 36 inventory + 4 armor + 1 offhand = 41 slots
-            soulboundSlots.add(slotIndex);
-            
+    private void addSoulboundSlot(InteractionHand hand, ItemStack stack)
+    {
+        //1. Parse inventory for slot that matches this stack
+        Inventory inventory = player.getInventory();
+        int slot = inventory.findSlotMatchingItem(stack);
+        //2. Check if the slot is already soulbound
+        if(slot == -1) return;
+        int slotToSoulbound = slot;
+        if (soulboundSlots.contains(slot)) {
+            //set to first non soulbound slot in players internal inventory (not armor or offhand)
+            //skip hotbar and armor slots
+            for (int i = 9; i < 36; i++) {
+                if (!soulboundSlots.contains(i)) {
+                    slotToSoulbound = i;
+                    break;
+                }
+            }
         }
+
+        soulboundSlots.add(slotToSoulbound);
     }
 
     /**
@@ -92,7 +122,6 @@ public class ManagedTraveler implements IManagedPlayer {
      */
     public void removeSoulboundSlot(int slotIndex) {
         soulboundSlots.remove(slotIndex);
-        
     }
 
     /**
@@ -114,9 +143,42 @@ public class ManagedTraveler implements IManagedPlayer {
     /**
      * Records that the player consumed a Pure Heart
      */
-    public void addPureHeart() {
+    public void addHealth(double health)
+    {
+        AttributeInstance healthAttribute = this.player.getAttribute(Attributes.MAX_HEALTH);
+        if (healthAttribute == null) {
+            LoggerProject.logError("020002", "Failed to retrieve MAX_HEALTH attribute for unkown reason, player: " );
+            return;
+        }
+
+
+        // Check if player already has the modifier (for stacking multiple pure hearts)
+        AttributeModifier existingModifier = healthAttribute.getModifier(PURE_HEART_MODIFIER_UUID);
+
+        double currentBonus = existingModifier != null ? existingModifier.getAmount() : 0.0;
+        double newBonus = currentBonus + health;
+
+        // Remove existing modifier if present
+        if (existingModifier != null) {
+            healthAttribute.removeModifier(PURE_HEART_MODIFIER_UUID);
+        }
+
+        // Add new modifier with increased health
+        AttributeModifier newModifier = new AttributeModifier(
+            PURE_HEART_MODIFIER_UUID, PURE_HEART_MODIFIER_NAME, newBonus,
+            AttributeModifier.Operation.ADDITION
+        );
+
+        healthAttribute.addPermanentModifier(newModifier);
+
+        // Heal player to new max health
+        player.setHealth(player.getMaxHealth());
+
+        // Send feedback message
+        //int totalHearts = (int) (newBonus / HEALTH_PER_HEART);
+        //player.sendSystemMessage(Component.translatable("item.hbs_traveler_rewards.pure_heart.success", totalHearts));
+
         pureHeartsConsumed++;
-        
     }
 
     /**
@@ -158,61 +220,9 @@ public class ManagedTraveler implements IManagedPlayer {
         return totalDeaths;
     }
 
-    public int getItemsSavedBySoulbound() {
-        return itemsSavedBySoulbound;
-    }
 
     //** EVENT HANDLERS
 
-    /**
-     * Called when any player dies - handles soulbound slot preservation
-     */
-    private static void onPlayerDeath(LivingDeathEvent event) {
-        if(event.getEntity() instanceof Player player) {
-            if (!(player instanceof ServerPlayer serverPlayer)) return;
-
-            ManagedTraveler traveler = TRAVELERS.get(player);
-            if (traveler == null) return;
-
-            traveler.handlePlayerDeath(serverPlayer, event);
-        }
-
-    }
-
-    /**
-     * Handles death logic for this traveler
-     */
-    private void handlePlayerDeath(ServerPlayer player, LivingDeathEvent event) {
-        totalDeaths++;
-
-        // Record death location for Savior Orb
-        lastDeathLocation = new DeathLocation(
-            player.blockPosition(),
-            player.level().dimension().location().toString()
-        );
-
-        // Handle soulbound slots - prevent items from dropping
-        if (!soulboundSlots.isEmpty()) {
-            Inventory inventory = player.getInventory();
-            List<ItemStack> soulboundItems = new ArrayList<>();
-
-            for (int slotIndex : soulboundSlots) {
-                ItemStack stack = inventory.getItem(slotIndex);
-                if (!stack.isEmpty()) {
-                    soulboundItems.add(stack.copy());
-                    itemsSavedBySoulbound += stack.getCount();
-                }
-            }
-
-            // Store soulbound items to be restored on respawn
-            if (!soulboundItems.isEmpty())
-            {
-            
-            }
-        }
-
-        
-    }
 
     //** PERSISTENT DATA MANAGEMENT
     
@@ -221,35 +231,52 @@ public class ManagedTraveler implements IManagedPlayer {
     @Nullable
     public static ManagedTraveler getManagedTraveler(Player player) {
         if (player == null) return null;
-        return TRAVELERS.get(player);
-    }
-
-    @Nullable
-    public static ManagedTraveler getOrCreate(Player player) {
-        if (player == null) return null;
-        return TRAVELERS.computeIfAbsent(player, ManagedTraveler::new);
+        return TRAVELERS.get(getId(player));
     }
 
     //** IMANAGED_PLAYER INTERFACE IMPLEMENTATION
 
     @Override
-    public void setPlayer(Player player) {
-        if (this.player == null) {
-            this.player = player;
-            TRAVELERS.put(player, this);
-            
-            return;
-        }
+    public void setPlayer(Player player)
+    {
+        if(player == null) return;
+        if(player == this.player || player == this.localPlayer) return;
 
-        ManagedTraveler traveler = TRAVELERS.remove(this.player);
-        this.player = player;
-        TRAVELERS.put(player, traveler);
+        if(player instanceof ServerPlayer)
+        { //ServerPlayer serverPlayer server side only
+            if (this.player != null)
+                TRAVELERS.remove(getId(this.player));
+            this.player = player;
+        }
+        else    //clientPlayer client side only
+        {
+
+        }
+        if(localPlayer!=null)
+            TRAVELERS.remove(getId(localPlayer));
+            if(ManagedPlayer.CLIENT_PLAYER!=null)
+            this.localPlayer = ManagedPlayer.CLIENT_PLAYER.getPlayer();
+        this.localTraveler = this;
+        TRAVELERS.put(getId(player), this);
+    }
+
+    public static String getId(Player p) {
+        if(p==null) return null;
+        return HBUtil.PlayerUtil.getId(p);
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public ServerPlayer getServerPlayer() {
+        return (ServerPlayer) player;
     }
 
 
     @Override
     public boolean isServerOnly() {
-        return true;
+        return false;
     }
 
     @Override
@@ -265,16 +292,14 @@ public class ManagedTraveler implements IManagedPlayer {
     @Override
     @Nullable
     public IManagedPlayer getStaticInstance(Player player, String id) {
-        return TRAVELERS.get(player);
+        return TRAVELERS.get(getId(player));
     }
 
     @Override
     public void handlePlayerJoin(Player player) {
-        
-
         // Restore soulbound items if any are pending from death
         if (player instanceof ServerPlayer serverPlayer) {
-            restoreSoulboundItems(serverPlayer);
+            restoreSoulboundItems();
         }
     }
 
@@ -287,13 +312,30 @@ public class ManagedTraveler implements IManagedPlayer {
     public void handlePlayerRespawn(Player player) {
         // Restore soulbound items after respawn
         if (player instanceof ServerPlayer serverPlayer) {
-            restoreSoulboundItems(serverPlayer);
+            restoreSoulboundItems();
         }
     }
 
     @Override
-    public void handlePlayerDeath(Player player) {
-        // Handled by the static event handler
+    public void handlePlayerDeath(Player player)
+    {
+        if(!(player instanceof ServerPlayer)) return;
+        totalDeaths++;
+
+        // Record death location for Savior Orb
+        lastDeathLocation = new DeathLocation(
+            player.blockPosition(),
+            player.level().dimension().location().toString()
+        );
+
+        // Handle soulbound slots - prevent items from dropping
+        if (!soulboundSlots.isEmpty()) {
+            Inventory inventory = player.getInventory();
+            for (int slotIndex : soulboundSlots) {
+                soulboundItemsToReturn.put(slotIndex, inventory.getItem(slotIndex).copy());
+            }
+        }
+
     }
 
     @Override
@@ -304,12 +346,23 @@ public class ManagedTraveler implements IManagedPlayer {
     /**
      * Restores soulbound items to player inventory after respawn
      */
-    private void restoreSoulboundItems(ServerPlayer player) {
-       
+    private void restoreSoulboundItems()
+     {
+         if(!(player instanceof ServerPlayer)) return;
+        if (soulboundItemsToReturn.isEmpty()) return;
+
+        Inventory inventory = player.getInventory();
+        for (int i : soulboundItemsToReturn.keySet()) {
+            if (!soulboundItemsToReturn.get(i).isEmpty()) {
+                inventory.setItem(i, soulboundItemsToReturn.get(i));
+            }
+        }
+        soulboundItemsToReturn.clear();
     }
 
     @Override
-    public CompoundTag serializeNBT() {
+    public CompoundTag serializeNBT()
+    {
         CompoundTag tag = new CompoundTag();
 
         // Serialize soulbound slots
@@ -326,13 +379,13 @@ public class ManagedTraveler implements IManagedPlayer {
 
         // Serialize statistics
         tag.putInt("total_deaths", totalDeaths);
-        tag.putInt("items_saved", itemsSavedBySoulbound);
 
         return tag;
     }
 
     @Override
-    public void deserializeNBT(CompoundTag tag) {
+    public void deserializeNBT(CompoundTag tag)
+    {
         if (tag == null || tag.isEmpty()) return;
 
         // Deserialize soulbound slots
@@ -344,22 +397,14 @@ public class ManagedTraveler implements IManagedPlayer {
             }
         }
 
-        // Deserialize Pure Heart count
         if (tag.contains("total_hearts")) {
             pureHeartsConsumed = tag.getInt("total_hearts");
         }
-
-        // Deserialize death location
         if (tag.contains("death_location")) {
             lastDeathLocation = DeathLocation.deserialize(tag.getString("death_location"));
         }
-
-        // Deserialize statistics
         if (tag.contains("total_deaths")) {
             totalDeaths = tag.getInt("total_deaths");
-        }
-        if (tag.contains("items_saved")) {
-            itemsSavedBySoulbound = tag.getInt("items_saved");
         }
     }
 
@@ -367,6 +412,10 @@ public class ManagedTraveler implements IManagedPlayer {
     public void setId(String s) {
         
     }
+
+
+    //** EVENTS
+
 
     //** INNER CLASSES
 
