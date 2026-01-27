@@ -22,9 +22,9 @@
   "item.hbs_traveler_rewards.soulbound_ritual_tablet.already_bound": "This slot is already soulbound",
   
   "item.hbs_traveler_rewards.fabrication_ritual_tablet": "Fabrication Ritual Tablet",
-  "item.hbs_traveler_rewards.fabrication_ritual_tablet.desc": "Duplicates chest contents",
-  "item.hbs_traveler_rewards.fabrication_ritual_tablet.success": "Duplicated %s items!",
-  "item.hbs_traveler_rewards.fabrication_ritual_tablet.chest_full": "Chest is full, cannot duplicate",
+  "item.hbs_traveler_rewards.fabrication_ritual_tablet.desc": "A magic ritual granted to the Ancient Builders. It duplicates the contentes of a chest filled with building materials",
+  "item.hbs_traveler_rewards.fabrication_ritual_tablet.success": "Duplicated %s stacks!",
+  "item.hbs_traveler_rewards.fabrication_ritual_tablet.no_space": "No spot to place duplicate chest",
   "item.hbs_traveler_rewards.fabrication_ritual_tablet.invalid_target": "Must be used on a chest",
   
   "item.hbs_traveler_rewards.potion_pot": "Potion Pot",
@@ -40,22 +40,22 @@
   "item.hbs_traveler_rewards.escape_rope.not_in_structure": "You must be inside a structure or deep cave to escape",
   
   "item.hbs_traveler_rewards.whetstone": "Whetstone",
-  "item.hbs_traveler_rewards.whetstone.desc": "Adds 1 level of Sharpness to any weapon in an anvil. Up to Sharpness 5.",
+  "item.hbs_traveler_rewards.whetstone.desc": "Adds 1 level of Sharpness to any weapon in an anvil. Up to Sharpness V.",
   
   "item.hbs_traveler_rewards.bracing": "Bracing",
-  "item.hbs_traveler_rewards.bracing.desc": "Adds 1 level of Unbreaking to any weapon or equipment item in an anvil. Up to Unbreaking 5.",
+  "item.hbs_traveler_rewards.bracing.desc": "Adds 1 level of Unbreaking to any weapon or equipment item in an anvil. Up to Unbreaking V.",
   
   "item.hbs_traveler_rewards.hourglass": "Hourglass",
-  "item.hbs_traveler_rewards.hourglass.desc": "Adds 1 level of Lasting to any item in an anvil. Up to Lasting 5.",
+  "item.hbs_traveler_rewards.hourglass.desc": "Adds 1 level of Lasting to any item in an anvil. Up to Lasting V.",
   
   "item.hbs_traveler_rewards.netherite_whetstone": "Netherite Whetstone",
-  "item.hbs_traveler_rewards.netherite_whetstone.desc": "Adds 2 levels of Sharpness to any weapon in an anvil. Up to Sharpness 10.",
+  "item.hbs_traveler_rewards.netherite_whetstone.desc": "Adds 2 levels of Sharpness to any weapon in an anvil. Up to Sharpness X.",
   
   "item.hbs_traveler_rewards.netherite_bracing": "Netherite Bracing",
-  "item.hbs_traveler_rewards.netherite_bracing.desc": "Adds 2 levels of Unbreaking to any weapon or equipment item in an anvil. Up to Unbreaking 10.",
+  "item.hbs_traveler_rewards.netherite_bracing.desc": "Adds 2 levels of Unbreaking to any weapon or equipment item in an anvil. Up to Unbreaking X.",
   
   "item.hbs_traveler_rewards.diamond_hourglass": "Diamond Hourglass",
-  "item.hbs_traveler_rewards.diamond_hourglass.desc": "Adds 2 levels of Lasting to any item in an anvil. Up to Lasting 10.",
+  "item.hbs_traveler_rewards.diamond_hourglass.desc": "Adds 2 levels of Lasting to any item in an anvil. Up to Lasting X.",
   
   "item.hbs_traveler_rewards.mob_ward": "Mob Ward",
   "item.hbs_traveler_rewards.mob_ward.desc": "Right click to add items to the ward. Any mob that drops this item will be warded away",

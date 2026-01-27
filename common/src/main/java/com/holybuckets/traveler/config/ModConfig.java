@@ -13,23 +13,32 @@ import java.util.Set;
 
 public class ModConfig {
 
-    static Set<Block> validFabricatedBlocks = new HashSet<>();
-    static Set<Item> validWhetstoneItems = new HashSet<>();
-    static Set<Item> validBracingItems = new HashSet<>();
-    static Set<Item> validDiamondShardItems = new HashSet<>();
-    static Set<Item> validIronBloomItems = new HashSet<>();
-    static Set<Item> validGoldRepairItems = new HashSet<>();
-    static Set<Item> validNetheriteRepairItems = new HashSet<>();
+    public static Set<Block> validFabricatedBlocks = new HashSet<>();
+    public static Set<Item> validWhetstoneItems = new HashSet<>();
+    public static Set<Item> validBracingItems = new HashSet<>();
+    public static Set<Item> validDiamondShardItems = new HashSet<>();
+    public static Set<Item> validIronBloomItems = new HashSet<>();
+    public static Set<Item> validGoldRepairItems = new HashSet<>();
+    public static Set<Item> validNetheriteRepairItems = new HashSet<>();
 
     public static void init(EventRegistrar reg ) {
         reg.registerOnBeforeServerStarted( ModConfig::onServerStarting, EventPriority.High );
     }
 
-    private static void onServerStarting(ServerStartingEvent event) {
+    private static void onServerStarting(ServerStartingEvent event)
+    {
         TravelerRewardsConfig CONFIG = TravelerRewardsMain.CONFIG;
-        
+
+        validBracingItems.clear();
+        validDiamondShardItems.clear();
+        validFabricatedBlocks.clear();
+        validGoldRepairItems.clear();
+        validIronBloomItems.clear();
+        validNetheriteRepairItems.clear();
+        validWhetstoneItems.clear();
+
         // Convert fabrication blocks
-        for( String blockId : CONFIG.fabricationRitualBlocksWhitelist ) {
+        for( String blockId : CONFIG.simpleRewards.fabricationRitualBlocksWhitelist ) {
             Block block = HBUtil.BlockUtil.blockNameToBlock(blockId);
             if( block != null ) {
                 validFabricatedBlocks.add(block);
@@ -78,6 +87,7 @@ public class ModConfig {
                 validNetheriteRepairItems.add(item);
             }
         }
+
     }
 
     public static boolean isValidFabricatedBlock(Block block) {

@@ -3,27 +3,39 @@ package com.holybuckets.traveler.core;
 import com.holybuckets.foundation.HBUtil;
 import com.holybuckets.foundation.LoggerBase;
 import com.holybuckets.foundation.event.EventRegistrar;
+import com.holybuckets.foundation.event.custom.PlayerNearStructureEvent;
 import com.holybuckets.foundation.modelInterface.IManagedPlayer;
 import com.holybuckets.foundation.player.ManagedPlayer;
+import com.holybuckets.foundation.structure.StructureAPI;
+import com.holybuckets.foundation.structure.StructureInfo;
+import com.holybuckets.foundation.structure.StructureManager;
 import com.holybuckets.traveler.LoggerProject;
+import com.holybuckets.traveler.TravelerRewardsMain;
 import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.holybuckets.foundation.player.ManagedPlayer.registerManagedPlayerData;
+import static  com.holybuckets.foundation.HBUtil.BlockUtil;
 
 /**
  * ManagedTraveler - Tracks player-specific data for HB's Traveler Rewards
@@ -49,11 +61,15 @@ public class ManagedTraveler implements IManagedPlayer {
     public static ManagedTraveler localTraveler;
     private final Set<Integer> soulboundSlots; // Soulbound slot tracking (slot index -> is soulbound)
     private final IntObjectMap<ItemStack> soulboundItemsToReturn; //The items in the soulbound slots we must return to player. Must be careful if they leave the game after dying.
+    private BlockPos structureEntryPos;
+    private StructureInfo closestStructureInfo;
     private DeathLocation lastDeathLocation; // Death location tracking for Savior Orb
-    private int pureHeartsConsumed; // Pure Heart tracking
 
     // Statistics
     private int totalDeaths;
+    private int pureHeartsConsumed; // Pure Heart tracking
+
+    //utility
 
     static {
         registerManagedPlayerData( ManagedTraveler.class, () -> new ManagedTraveler(null) );
@@ -72,7 +88,7 @@ public class ManagedTraveler implements IManagedPlayer {
      * Initialize event handlers
      */
     public static void init(EventRegistrar reg) {
-
+        reg.registerOnPlayerNearStructure(null, ManagedTraveler::onPlayerNearStructure);
     }
 
     private static final UUID PURE_HEART_MODIFIER_UUID = UUID.fromString("a3d89f7e-5c8d-4f3a-9b2e-1d4c6e8f0a1b");
@@ -181,6 +197,72 @@ public class ManagedTraveler implements IManagedPlayer {
         pureHeartsConsumed++;
     }
 
+    private void onPlayerNearStructure(StructureInfo structureInfo)
+    {
+        if(structureInfo != closestStructureInfo) {
+            structureEntryPos = player.blockPosition().offset(0,1,0);
+            closestStructureInfo = structureInfo;
+        }
+    }
+
+    public boolean isInStructure()
+    {
+        StructureAPI api = TravelerRewardsMain.STRUCTURE_APIS.get(player.level());
+        BlockPos structurePos = api.nearestStructures(player.blockPosition(),1).get(0).getOrigin();
+        if(structurePos == null) return false;
+        if(BlockUtil.inRange(player.blockPosition(), structurePos, 64))
+            return true;
+        return false;
+    }
+
+    public static final int ESCAPE_ROPE_MAX_Y_CAVE_ESCAPE = 16;
+    public boolean isInDeepCaves() {
+        return (player.blockPosition().getY() < ESCAPE_ROPE_MAX_Y_CAVE_ESCAPE);
+    }
+
+    /**
+     * Finds the surface directly above the player's current position
+     * @return BlockPos at surface level, or null if not found
+     */
+    @Nullable
+    private BlockPos findSurfaceAbove()
+    {
+        if (!(player instanceof ServerPlayer serverPlayer)) return null;
+
+        Level level = serverPlayer.level();
+        BlockPos playerPos = player.blockPosition();
+        int x = playerPos.getX();
+        int z = playerPos.getZ();
+
+        // Get the top solid block at this X,Z coordinate
+        // This uses Minecraft's built-in heightmap which tracks the surface
+        int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+        BlockPos surfacePos = new BlockPos(x, surfaceY, z);
+        if (level.getBlockState(surfacePos).isAir() &&
+            level.getBlockState(surfacePos.above()).isAir()) {
+            return surfacePos;
+        }
+
+        return null;
+    }
+
+    public void onUseEscapeRope()
+    {
+
+        if(isInStructure() && structureEntryPos != null)
+        {
+            player.teleportTo(
+                structureEntryPos.getX() + 0.5, structureEntryPos.getY(), structureEntryPos.getZ() + 0.5
+            );
+        } else if( isInDeepCaves() ) {
+            BlockPos surface = findSurfaceAbove();
+            if(surface != null)
+                player.teleportTo( surface.getX() + 0.5, surface.getY(), surface.getZ() + 0.5);
+        }
+
+        structureEntryPos = null;
+    }
+
     /**
      * Gets the total number of Pure Hearts consumed
      */
@@ -260,6 +342,11 @@ public class ManagedTraveler implements IManagedPlayer {
         TRAVELERS.put(getId(player), this);
     }
 
+    @Override
+    public void setId(String s) {
+
+    }
+
     public static String getId(Player p) {
         if(p==null) return null;
         return HBUtil.PlayerUtil.getId(p);
@@ -271,6 +358,11 @@ public class ManagedTraveler implements IManagedPlayer {
 
     public ServerPlayer getServerPlayer() {
         return (ServerPlayer) player;
+    }
+
+    public int getCurrentlySelectedHotbarIndex() {
+        if (player == null) return -1;
+        return player.getInventory().selected;
     }
 
 
@@ -305,7 +397,50 @@ public class ManagedTraveler implements IManagedPlayer {
 
     @Override
     public void handlePlayerLeave(Player player) {
-        
+        if(player==null) return;
+        localTraveler = null;
+        localPlayer = null;
+
+        this.cleanupSoulboundItemsOnLeave();
+        TRAVELERS.remove(getId(player));
+    }
+
+    /**
+     * Drop soulbound items if player left before they respawned
+     */
+    private void cleanupSoulboundItemsOnLeave()
+    {
+        if(this.getServerPlayer()==null) return;
+        if (soulboundItemsToReturn.isEmpty()) return;
+
+        BlockPos dropPoint = player.blockPosition();
+        if(dropPoint == null)
+        {
+            if(lastDeathLocation != null) {
+                dropPoint = lastDeathLocation.getPosition();
+            }
+            else {
+                if(getServerPlayer().getRespawnPosition()==null) return;
+                dropPoint = getServerPlayer().getRespawnPosition();
+            }
+        }
+
+        for(int i : soulboundItemsToReturn.keySet()) {
+            ItemStack itemStack = soulboundItemsToReturn.get(i);
+            if (!itemStack.isEmpty()) {
+                Entity item = new ItemEntity(
+                    getServerPlayer().level(),
+                    dropPoint.getX() + 0.5,  // X position (centered)
+                    dropPoint.getY() + 1.0,  // Y position (above ground)
+                    dropPoint.getZ() + 0.5,  // Z position (centered)
+                    itemStack
+                );
+                (getServerPlayer().level()).addFreshEntity(item);
+            }
+        }
+
+
+        soulboundItemsToReturn.clear();
     }
 
     @Override
@@ -332,7 +467,8 @@ public class ManagedTraveler implements IManagedPlayer {
         if (!soulboundSlots.isEmpty()) {
             Inventory inventory = player.getInventory();
             for (int slotIndex : soulboundSlots) {
-                soulboundItemsToReturn.put(slotIndex, inventory.getItem(slotIndex).copy());
+                soulboundItemsToReturn.put(slotIndex, inventory.getItem(slotIndex));
+                inventory.setItem(slotIndex, ItemStack.EMPTY);
             }
         }
 
@@ -372,6 +508,11 @@ public class ManagedTraveler implements IManagedPlayer {
         // Serialize Pure Heart count
         tag.putInt("total_hearts", pureHeartsConsumed);
 
+        // Serialize structure entry position
+        if (structureEntryPos != null) {
+            tag.putString("structure_entry_pos", HBUtil.BlockUtil.positionToString(structureEntryPos));
+        }
+
         // Serialize death location
         if (lastDeathLocation != null) {
             tag.putString("death_location", lastDeathLocation.serialize());
@@ -397,6 +538,13 @@ public class ManagedTraveler implements IManagedPlayer {
             }
         }
 
+        // Deserialize structure entry position
+        if (tag.contains("structure_entry_pos")) {
+            String posString = tag.getString("structure_entry_pos");
+            Vec3i pos = HBUtil.BlockUtil.stringToBlockPos(posString);
+            structureEntryPos = (pos != null) ? new BlockPos(pos) : null;
+        }
+
         if (tag.contains("total_hearts")) {
             pureHeartsConsumed = tag.getInt("total_hearts");
         }
@@ -408,13 +556,14 @@ public class ManagedTraveler implements IManagedPlayer {
         }
     }
 
-    @Override
-    public void setId(String s) {
-        
-    }
-
 
     //** EVENTS
+    public static void onPlayerNearStructure(PlayerNearStructureEvent event) {
+        Player player = event.getPlayer();
+        ManagedTraveler traveler = ManagedTraveler.getManagedTraveler(player);
+        if(traveler == null) return;
+        traveler.onPlayerNearStructure(event.getStructureInfo());
+    }
 
 
     //** INNER CLASSES

@@ -2,9 +2,20 @@ package com.holybuckets.traveler;
 
 
 import com.holybuckets.foundation.event.EventRegistrar;
-import com.holybuckets.traveler.config.TemplateConfig;
+import com.holybuckets.foundation.structure.StructureAPI;
+import com.holybuckets.traveler.config.ModConfig;
+import com.holybuckets.traveler.config.TravelerRewardsConfig;
 import com.holybuckets.traveler.core.ManagedTraveler;
+import com.holybuckets.traveler.core.AnvilRecipeManager;
+import net.blay09.mods.balm.api.Balm;
+import net.blay09.mods.balm.api.event.EventPriority;
+import net.blay09.mods.balm.api.event.LevelLoadingEvent;
 import net.blay09.mods.balm.api.event.server.ServerStartingEvent;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Main instance of the mod, initialize this class statically via commonClass
@@ -12,8 +23,10 @@ import net.blay09.mods.balm.api.event.server.ServerStartingEvent;
  */
 public class TravelerRewardsMain {
     private static boolean DEV_MODE = false;;
-    private static TemplateConfig CONFIG;
+    public static TravelerRewardsConfig CONFIG;
+
     public static TravelerRewardsMain INSTANCE;
+    public static final Map<Level, StructureAPI> STRUCTURE_APIS = new HashMap<>();
 
     public TravelerRewardsMain()
     {
@@ -37,18 +50,29 @@ public class TravelerRewardsMain {
         //Events
         EventRegistrar registrar = EventRegistrar.getInstance();
         //ChallengeBlockBehavior.init(registrar);
+        registrar.registerOnLevelLoad(this::onLevelLoad, EventPriority.Lowest);
+        ModConfig.init(registrar);
         ManagedTraveler.init(registrar);
+
+        AnvilRecipeManager.init(registrar);
 
 
         //register local events
-        registrar.registerOnBeforeServerStarted(this::onServerStarting);
+        registrar.registerOnBeforeServerStarted(this::onServerStarting, EventPriority.Highest);
 
     }
 
     private void onServerStarting(ServerStartingEvent e) {
-        //CONFIG = Balm.getConfig().getActiveConfig(TemplateConfig.class);
+        CONFIG = Balm.getConfig().getActiveConfig(TravelerRewardsConfig.class);
         //this.DEV_MODE = CONFIG.devMode;
         this.DEV_MODE = false;
+        STRUCTURE_APIS.clear();
+    }
+
+    private void onLevelLoad(LevelLoadingEvent.Load event) {
+        if(event.getLevel() instanceof ServerLevel level) {
+            STRUCTURE_APIS.put(level, new StructureAPI(level));
+        }
     }
 
 

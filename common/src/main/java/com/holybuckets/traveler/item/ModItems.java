@@ -56,7 +56,7 @@ public class ModItems {
         // Register creative tab
         creativeModeTab = items.registerCreativeModeTab(
             id(MOD_ID),
-            () -> new ItemStack(pureHeart) // Use Pure Heart as the icon
+            () -> new ItemStack(soulboundRitualTablet)
         );
 
         // Register Simple Reward Items

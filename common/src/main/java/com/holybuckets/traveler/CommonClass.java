@@ -4,6 +4,7 @@ import com.holybuckets.foundation.event.BalmEventRegister;
 import com.holybuckets.traveler.block.ModBlocks;
 import com.holybuckets.traveler.block.be.ModBlockEntities;
 import com.holybuckets.traveler.client.ModRenderers;
+import com.holybuckets.traveler.config.TravelerRewardsConfig;
 import com.holybuckets.traveler.item.ModItems;
 import com.holybuckets.traveler.menu.ModMenus;
 import com.holybuckets.traveler.platform.Services;
@@ -32,7 +33,7 @@ public class CommonClass {
         }
 
         //RegisterConfigs
-        //Balm.getConfig().registerConfig(ChallengeTempleConfig.class);
+        Balm.getConfig().registerConfig(TravelerRewardsConfig.class);
         TravelerRewardsMain.INSTANCE = new TravelerRewardsMain();
         BalmEventRegister.registerEvents();
         BalmEventRegister.registerCommands();
