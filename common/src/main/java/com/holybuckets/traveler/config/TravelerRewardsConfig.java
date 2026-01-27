@@ -24,6 +24,25 @@ public class TravelerRewardsConfig {
      /*Fired bricks*/ "minecraft:bricks", "minecraft:stone_bricks", "minecraft:nether_bricks",
      /*basalt, blackstone, endstone*/ "minecraft:basalt", "minecraft:blackstone", "minecraft:end_stone", "minecraft:prismarine");
 
+    public static class AnvilRewardsConfig {
+        @NestedType(String.class)
+        public Set<String> whetstoneWeapons = Set.of();
+        
+        @NestedType(String.class)
+        public Set<String> bracingEquipment = Set.of();
+        
+        @NestedType(String.class)
+        public Set<String> diamondRepairEquip = Set.of();
+        
+        @NestedType(String.class)
+        public Set<String> ironRepairEquip = Set.of();
+        
+        @NestedType(String.class)
+        public Set<String> goldRepairEquip = Set.of();
+        
+        @NestedType(String.class)
+        public Set<String> netheriteRepairEquip = Set.of();
+    }
 
-
+    public AnvilRewardsConfig anvilRewards = new AnvilRewardsConfig();
 }
