@@ -36,6 +36,8 @@
   "item.hbs_traveler_rewards.escape_rope.success": "Escaped successfully!",
   "item.hbs_traveler_rewards.escape_rope.not_full_health": "You must be at full health to escape",
   "item.hbs_traveler_rewards.escape_rope.no_safe_location": "Could not find a safe location",
+  "item.hbs_traveler_rewards.escape_rope.failed": "Unable to escape from this location",
+  "item.hbs_traveler_rewards.escape_rope.not_in_structure": "You must be inside a structure or deep cave to escape",
   
   "item.hbs_traveler_rewards.whetstone": "Whetstone",
   "item.hbs_traveler_rewards.whetstone.desc": "Adds 1 level of Sharpness to any weapon in an anvil. Up to Sharpness 5.",
