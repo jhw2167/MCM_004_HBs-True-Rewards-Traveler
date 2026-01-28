@@ -5,10 +5,16 @@ import com.holybuckets.foundation.event.EventRegistrar;
 import com.holybuckets.traveler.TravelerRewardsMain;
 import net.blay09.mods.balm.api.event.EventPriority;
 import net.blay09.mods.balm.api.event.server.ServerStartingEvent;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class ModConfig {
@@ -20,6 +26,8 @@ public class ModConfig {
     public static Set<Item> validIronBloomItems = new HashSet<>();
     public static Set<Item> validGoldRepairItems = new HashSet<>();
     public static Set<Item> validNetheriteRepairItems = new HashSet<>();
+
+    public static final Map<EntityType<?>, Set<Item>> mobDrops = new HashMap<>();
 
     public static final int[] LASTING_TICKS = new int[] {
         300,
@@ -98,6 +106,21 @@ public class ModConfig {
             Item item = HBUtil.ItemUtil.itemNameToItem(itemId);
             if( item != null ) {
                 validNetheriteRepairItems.add(item);
+            }
+        }
+
+        //Init Mob Drops by scanning Entity Type and Loot Tables Registries
+        Registry<EntityType<?>> entities = BuiltInRegistries.ENTITY_TYPE;
+        for( EntityType<?> entityType : entities ) {
+            Set<Item> drops = new HashSet<>();
+            for( String itemId : CONFIG.mobDrops.getMobDropItems( Registry.ENTITY_TYPE.getKey(entityType).toString() ) ) {
+                Item item = HBUtil.ItemUtil.itemNameToItem(itemId);
+                if( item != null ) {
+                    drops.add(item);
+                }
+            }
+            if( !drops.isEmpty() ) {
+                mobDrops.put( entityType, drops );
             }
         }
 

@@ -1,5 +1,6 @@
 package com.holybuckets.traveler.menu;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -38,6 +39,13 @@ public class MobWardMenu extends AbstractContainerMenu {
             public int getMaxStackSize() {
                 return 1; // Only one item
             }
+
+            @Override
+            public void setChanged() {
+                super.setChanged();
+                // Save to NBT whenever item changes
+                saveFilterItemToNBT();
+            }
         });
 
         // Add player inventory slots
@@ -45,6 +53,15 @@ public class MobWardMenu extends AbstractContainerMenu {
         addPlayerHotbar(playerInventory);
 
         // Initialize ward message
+        updateWardMessage();
+    }
+
+    /**
+     * Save the filter item to the Mob Ward's NBT
+     */
+    private void saveFilterItemToNBT() {
+        ItemStack filterItem = this.slots.get(0).getItem();
+        MobWardContainer.saveFilterItem(mobWardStack, filterItem);
         updateWardMessage();
     }
 
@@ -88,10 +105,9 @@ public class MobWardMenu extends AbstractContainerMenu {
     public void removed(Player player) {
         super.removed(player);
 
-        // Save the item in slot back to ward's NBT
+        // Save the item in slot back to ward's NBT when menu closes
         if (!player.level().isClientSide()) {
-            ItemStack filterItem = this.slots.get(0).getItem();
-            MobWardContainer.saveFilterItem(mobWardStack, filterItem);
+            saveFilterItemToNBT();
         }
     }
 
@@ -99,17 +115,47 @@ public class MobWardMenu extends AbstractContainerMenu {
      * Update the ward message based on current NBT data
      */
     public void updateWardMessage() {
-        // Read warded mobs from NBT
-        if (mobWardStack.hasTag() && mobWardStack.getTag().contains("WardedMobs")) {
-            String wardedMobs = mobWardStack.getTag().getString("WardedMobs");
-            if (!wardedMobs.isEmpty()) {
-                this.wardMessage = Component.literal("Warding: " + wardedMobs);
+        // Read warded mob type from NBT
+        if (mobWardStack.hasTag() && mobWardStack.getTag().contains("WardedMobType")) {
+            String wardedMobType = mobWardStack.getTag().getString("WardedMobType");
+            if (!wardedMobType.isEmpty()) {
+                String displayName = formatMobName(wardedMobType);
+                this.wardMessage = Component.literal("Warding: " + displayName);
+            } else {
+                this.wardMessage = Component.literal("No mobs currently warded");
+            }
+        } else if (mobWardStack.hasTag() && mobWardStack.getTag().contains("filterItem")) {
+            // Show filter item if no mob type derived yet
+            ItemStack filterItem = ItemStack.of(mobWardStack.getTag().getCompound("filterItem"));
+            if (!filterItem.isEmpty()) {
+                this.wardMessage = Component.literal("Item: " + filterItem.getDisplayName().getString());
             } else {
                 this.wardMessage = Component.literal("No mobs currently warded");
             }
         } else {
             this.wardMessage = Component.literal("No mobs currently warded");
         }
+    }
+
+    /**
+     * Format mob type name for display
+     */
+    private String formatMobName(String mobType) {
+        String[] parts = mobType.split(":");
+        String name = parts.length > 1 ? parts[1] : parts[0];
+        name = name.replace("_", " ");
+
+        // Capitalize each word
+        String[] words = name.split(" ");
+        StringBuilder formatted = new StringBuilder();
+        for (String word : words) {
+            if (word.length() > 0) {
+                formatted.append(word.substring(0, 1).toUpperCase())
+                    .append(word.substring(1))
+                    .append(" ");
+            }
+        }
+        return formatted.toString().trim();
     }
 
     /**
@@ -153,22 +199,69 @@ public class MobWardMenu extends AbstractContainerMenu {
             loadFilterItem();
         }
 
+        /**
+         * Load filter item from Mob Ward's NBT
+         */
         private void loadFilterItem() {
-            if (mobWard.hasTag() && mobWard.getTag().contains("FilterItem")) {
-                filterItem = ItemStack.of(mobWard.getTag().getCompound("FilterItem"));
+            if (mobWard.hasTag() && mobWard.getTag().contains("filterItem")) {
+                filterItem = ItemStack.of(mobWard.getTag().getCompound("filterItem"));
             }
         }
 
+        /**
+         * Save filter item to Mob Ward's NBT
+         */
         public static void saveFilterItem(ItemStack mobWard, ItemStack filterItem) {
-            if (!mobWard.hasTag()) {
-                mobWard.setTag(new net.minecraft.nbt.CompoundTag());
-            }
+            CompoundTag tag = mobWard.getOrCreateTag();
 
             if (filterItem.isEmpty()) {
-                mobWard.getTag().remove("FilterItem");
+                // Remove filter item
+                tag.remove("filterItem");
+                tag.remove("WardedMobType");
             } else {
-                mobWard.getTag().put("FilterItem", filterItem.save(new net.minecraft.nbt.CompoundTag()));
+                // Save filter item
+                CompoundTag itemTag = new CompoundTag();
+                filterItem.save(itemTag);
+                tag.put("filterItem", itemTag);
+
+                // Also derive and save mob type
+                String mobType = getMobTypeFromItem(filterItem);
+                if (!mobType.isEmpty()) {
+                    tag.putString("WardedMobType", mobType);
+                }
             }
+        }
+
+        /**
+         * Derive mob type from an item (e.g., rotten flesh → zombie)
+         */
+        private static String getMobTypeFromItem(ItemStack filterItem) {
+            if (filterItem.isEmpty()) {
+                return "";
+            }
+
+            net.minecraft.world.item.Item item = filterItem.getItem();
+
+            // Common mob drops
+            if (item == net.minecraft.world.item.Items.ROTTEN_FLESH) return "minecraft:zombie";
+            if (item == net.minecraft.world.item.Items.BONE) return "minecraft:skeleton";
+            if (item == net.minecraft.world.item.Items.GUNPOWDER) return "minecraft:creeper";
+            if (item == net.minecraft.world.item.Items.STRING) return "minecraft:spider";
+            if (item == net.minecraft.world.item.Items.ENDER_PEARL) return "minecraft:enderman";
+            if (item == net.minecraft.world.item.Items.SPIDER_EYE) return "minecraft:spider";
+            if (item == net.minecraft.world.item.Items.SLIME_BALL) return "minecraft:slime";
+            if (item == net.minecraft.world.item.Items.MAGMA_CREAM) return "minecraft:magma_cube";
+            if (item == net.minecraft.world.item.Items.BLAZE_ROD) return "minecraft:blaze";
+            if (item == net.minecraft.world.item.Items.GHAST_TEAR) return "minecraft:ghast";
+            if (item == net.minecraft.world.item.Items.PRISMARINE_SHARD) return "minecraft:guardian";
+            if (item == net.minecraft.world.item.Items.PHANTOM_MEMBRANE) return "minecraft:phantom";
+
+            // Spawn eggs
+            if (item instanceof net.minecraft.world.item.SpawnEggItem spawnEgg) {
+                return spawnEgg.getType(null).toString();
+            }
+
+            return "";
         }
 
         @Override

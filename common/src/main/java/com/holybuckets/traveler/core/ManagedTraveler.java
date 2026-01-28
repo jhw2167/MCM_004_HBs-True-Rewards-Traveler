@@ -32,6 +32,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -46,6 +47,7 @@ import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -75,6 +77,7 @@ public class ManagedTraveler implements IManagedPlayer {
 
     // Player reference
     private Player player;
+    private ManagedPlayer managedPlayer;
     private static Player localPlayer;
     public static ManagedTraveler localTraveler;
     private final Set<Integer> soulboundSlots; // Soulbound slot tracking (slot index -> is soulbound)
@@ -123,6 +126,7 @@ public class ManagedTraveler implements IManagedPlayer {
         reg.registerOnBeforeServerStarted( ManagedTraveler::onBeforeServerStarted, EventPriority.Lowest );
         reg.registerOnPlayerNearStructure(null, ManagedTraveler::onPlayerNearStructure);
         reg.registerOnServerTick(TickType.ON_20_TICKS, ManagedTraveler::onServer20ticks );
+        reg.registerOnTossItem(ManagedTraveler::onPlayerTossItem);
     }
 
     private static final UUID PURE_HEART_MODIFIER_UUID = UUID.fromString("a3d89f7e-5c8d-4f3a-9b2e-1d4c6e8f0a1b");
@@ -363,6 +367,7 @@ public class ManagedTraveler implements IManagedPlayer {
             if (this.player != null)
                 TRAVELERS.remove(getId(this.player));
             this.player = player;
+            this.managedPlayer = ManagedPlayer.getManagedPlayer(player);
         }
         else    //clientPlayer client side only
         {
@@ -370,7 +375,7 @@ public class ManagedTraveler implements IManagedPlayer {
         }
         if(localPlayer!=null)
             TRAVELERS.remove(getId(localPlayer));
-            if(ManagedPlayer.CLIENT_PLAYER!=null)
+        if(ManagedPlayer.CLIENT_PLAYER!=null)
             this.localPlayer = ManagedPlayer.CLIENT_PLAYER.getPlayer();
         this.localTraveler = this;
         TRAVELERS.put(getId(player), this);
@@ -392,6 +397,11 @@ public class ManagedTraveler implements IManagedPlayer {
 
     public ServerPlayer getServerPlayer() {
         return (ServerPlayer) player;
+    }
+
+    public Set<Entity> getNearbyEntities() {
+        if(managedPlayer == null) return Set.of();
+        return managedPlayer.getNearbyEntities();
     }
 
     public int getCurrentlySelectedHotbarIndex() {
@@ -541,7 +551,7 @@ public class ManagedTraveler implements IManagedPlayer {
         long currentTick = GENERAL_CONFIG.getTotalTickCount();
 
         List<Integer> slotsToRemove = new ArrayList<>();
-        for (int i = 0; i < inventory.getContainerSize(); i++)
+        for (Integer i : lastingItems.keySet())
         {
             ItemStack stack = inventory.getItem(i);
             if (stack.isEmpty()) continue;
@@ -667,12 +677,32 @@ public class ManagedTraveler implements IManagedPlayer {
     private void wardMobs()
     {
         for (ItemStack mobWardStack : mobWards.values()) {
-            //MobWardItem.wardNearbyMobs(serverPlayer, mobWardStack);
+            if(mobWardStack.getTag().contains("filterItem")) {
+                ItemStack filterItem = ItemStack.of(mobWardStack.getTag().getCompound("filterItem"));
+                getNearbyEntities().forEach(e -> wardEntity(e, player, filterItem));
+            }
         }
     }
 
-    private void distractMob(Entity e) {
+    private static void wardEntity(Entity entity, Player player, ItemStack filterItem) {
+        if(!(entity instanceof Mob mob)) return;
+        //Find
+        wardMob(mob, player);
+    }
 
+    private static void wardMob(Mob mob, Player player)
+    {
+        if (mob.getTarget() == player) mob.setTarget(null);
+        mob.getBrain().eraseMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.ATTACK_TARGET);
+        mob.getBrain().eraseMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.ANGRY_AT);
+        boolean tooClose = HBUtil.BlockUtil.inRange(mob.blockPosition(), player.blockPosition(), 16);
+        if(tooClose) addFleeGoal(mob, player);
+    }
+
+    private static void addFleeGoal(Mob mob, Player player) {
+        Vec3 fleeDirection = mob.position().subtract(player.position()).normalize();
+        Vec3 fleeTarget = mob.position().add(fleeDirection.scale(5.0)); // Flee 5 blocks away
+        mob.getNavigation().moveTo(fleeTarget.x, fleeTarget.y, fleeTarget.z, 1.2); // 1.2 = movement speed multiplier
     }
 
 
@@ -682,57 +712,30 @@ public class ManagedTraveler implements IManagedPlayer {
     private static List<ItemStack> brewPotionPot(ServerPlayer player, ItemStack potionPotStack)
     {
         if (!potionPotStack.hasTag()) return List.of();
-
         CompoundTag tag = potionPotStack.getTag();
+
         int awkwardPotionCount = tag.getInt("AwkwardPotionCount");
-        if (awkwardPotionCount <= 0) return false;
+        if (awkwardPotionCount <= 0) return List.of();
 
         List<ItemStack> potions = new ArrayList<>();
-
         for(int i=0; i<awkwardPotionCount; i++) {
             ItemStack awkwardPotion = new ItemStack(Items.POTION);
             PotionUtils.setPotion(awkwardPotion, Potions.AWKWARD);
             potions.add(awkwardPotion);
         }
 
-        if (!tag.contains("Ingredient")) return false;
+        if (!tag.contains("Ingredient")) return potions;
 
         ItemStack ingredient = ItemStack.of(tag.getCompound("Ingredient"));
-        if (ingredient.isEmpty()) return false;
+        if (ingredient.isEmpty()) return potions;
+        if (!PotionBrewing.hasMix(ingredient, potions.get(0))) return potions;
 
-
-        ItemStack awkwardPotion = new ItemStack(Items.POTION);
-        PotionUtils.setPotion(awkwardPotion, Potions.AWKWARD);
-
-        if(PotionBrewing.hasMix(awkwardPotion, ingredient))
-        {
-            //for all awkward potions
-            for(int i=0; i<awkwardPotionCount; i++) {
-
-            }
-            PotionBrewing.mix(awkwardPotion, ingredient);
-        }
-            return  false;)
-        ItemStack resultPotion = brewPotion(awkwardPotion, ingredient);
-
-        if (resultPotion.isEmpty()) {
-            // Invalid recipe
-            MESSAGER.sendBottomActionHint(
-                Component.translatable("item.hbs_traveler_rewards.potion_pot.invalid_recipe").getString()
-            );
-            return false;
+        List<ItemStack> brewedPotions = new ArrayList<>();
+        for(ItemStack basePotion : potions) {
+            brewedPotions.add( PotionBrewing.mix(ingredient, basePotion) );
         }
 
-        // Give player the resulting potions (one for each awkward potion)
-        for (int i = 0; i < awkwardPotionCount; i++) {
-            ItemStack potionCopy = resultPotion.copy();
-            if (!player.addItem(potionCopy)) {
-                // Inventory full, drop it
-                player.drop(potionCopy, false);
-            }
-        }
-
-        return true;
+        return brewedPotions;
     }
 
 
@@ -836,18 +839,25 @@ public class ManagedTraveler implements IManagedPlayer {
         ItemStack stack = event.getItemStack();
         if(stack.getItem() == ModItems.potionPot)
         {
-            if (brewPotionPot(serverPlayer, stack))
+            List<ItemStack> dropItems = brewPotionPot(serverPlayer, stack);
+            stack.shrink(1); // Consume one Potion Pot item
+            serverPlayer.level().playSound(null, serverPlayer.blockPosition(),
+                SoundEvents.GLASS_BREAK, SoundSource.PLAYERS,
+                1.0f, 1.0f
+            );
+
+            if(!dropItems.isEmpty())
             {
-                stack.shrink(1); // Consume one Potion Pot item
-                serverPlayer.level().playSound(
-                    null,
-                    serverPlayer.blockPosition(),
-                    SoundEvents.GLASS_BREAK,
-                    SoundSource.PLAYERS,
-                    1.0f,
-                    1.0f
-                );
+                Vec3 inFront = serverPlayer.getEyePosition().add(serverPlayer.getLookAngle().scale(1.5));
+                for(ItemStack dropStack : dropItems)
+                {
+                    ItemEntity itemEntity = new ItemEntity( serverPlayer.level(),
+                        inFront.x, inFront.y, inFront.z, dropStack
+                    );
+                    serverPlayer.level().addFreshEntity(itemEntity);
+                }
             }
+
         }
 
     }
