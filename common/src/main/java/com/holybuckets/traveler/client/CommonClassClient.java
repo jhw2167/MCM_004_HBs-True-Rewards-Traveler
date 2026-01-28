@@ -6,6 +6,7 @@ import com.holybuckets.foundation.client.MessagerClient;
 import com.holybuckets.foundation.event.custom.TickType;
 import com.holybuckets.foundation.player.ManagedPlayer;
 import com.holybuckets.foundation.structure.StructureManager;
+import com.holybuckets.traveler.client.screen.ModScreens;
 import com.holybuckets.traveler.core.ManagedTraveler;
 import net.blay09.mods.balm.api.client.BalmClient;
 import net.blay09.mods.balm.api.event.EventPriority;
@@ -22,6 +23,8 @@ public class CommonClassClient {
         initClientEvents();
         initRenderers();
         //testRenderers();
+
+        ModScreens.initialize(BalmClient.getScreens());
     }
 
     //** CLIENT INITIALIZERS **//

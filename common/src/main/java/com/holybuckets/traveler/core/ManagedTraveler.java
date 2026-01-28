@@ -1,9 +1,12 @@
 package com.holybuckets.traveler.core;
 
+import com.holybuckets.foundation.GeneralConfig;
 import com.holybuckets.foundation.HBUtil;
 import com.holybuckets.foundation.LoggerBase;
 import com.holybuckets.foundation.event.EventRegistrar;
 import com.holybuckets.foundation.event.custom.PlayerNearStructureEvent;
+import com.holybuckets.foundation.event.custom.ServerTickEvent;
+import com.holybuckets.foundation.event.custom.TickType;
 import com.holybuckets.foundation.modelInterface.IManagedPlayer;
 import com.holybuckets.foundation.player.ManagedPlayer;
 import com.holybuckets.foundation.structure.StructureAPI;
@@ -11,13 +14,22 @@ import com.holybuckets.foundation.structure.StructureInfo;
 import com.holybuckets.foundation.structure.StructureManager;
 import com.holybuckets.traveler.LoggerProject;
 import com.holybuckets.traveler.TravelerRewardsMain;
+import com.holybuckets.traveler.config.ModConfig;
+import com.holybuckets.traveler.enchantment.ModEnchantments;
+import com.holybuckets.traveler.item.ModItems;
 import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
+import net.blay09.mods.balm.api.event.EventPriority;
+import net.blay09.mods.balm.api.event.TossItemEvent;
+import net.blay09.mods.balm.api.event.server.ServerStartingEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -27,6 +39,11 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionBrewing;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 
@@ -34,6 +51,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.holybuckets.foundation.CommonClass.MESSAGER;
 import static com.holybuckets.foundation.player.ManagedPlayer.registerManagedPlayerData;
 import static  com.holybuckets.foundation.HBUtil.BlockUtil;
 
@@ -65,9 +83,19 @@ public class ManagedTraveler implements IManagedPlayer {
     private StructureInfo closestStructureInfo;
     private DeathLocation lastDeathLocation; // Death location tracking for Savior Orb
 
+    //Item Based
+    private final IntObjectMap<ItemStack> mobWards;
+    private final IntObjectMap<ItemStack> potionPots;
+    private final IntObjectMap<ItemStack> lastingItems;
+
+
+
     // Statistics
     private int totalDeaths;
     private int pureHeartsConsumed; // Pure Heart tracking
+
+    //Statics
+    private static GeneralConfig GENERAL_CONFIG;
 
     //utility
 
@@ -82,13 +110,19 @@ public class ManagedTraveler implements IManagedPlayer {
         this.lastDeathLocation = null;
         this.pureHeartsConsumed = 0;
         this.totalDeaths = 0;
+
+        this.mobWards = new IntObjectHashMap<>();
+        this.potionPots = new IntObjectHashMap<>();
+        this.lastingItems = new IntObjectHashMap<>();
     }
 
     /**
      * Initialize event handlers
      */
     public static void init(EventRegistrar reg) {
+        reg.registerOnBeforeServerStarted( ManagedTraveler::onBeforeServerStarted, EventPriority.Lowest );
         reg.registerOnPlayerNearStructure(null, ManagedTraveler::onPlayerNearStructure);
+        reg.registerOnServerTick(TickType.ON_20_TICKS, ManagedTraveler::onServer20ticks );
     }
 
     private static final UUID PURE_HEART_MODIFIER_UUID = UUID.fromString("a3d89f7e-5c8d-4f3a-9b2e-1d4c6e8f0a1b");
@@ -496,6 +530,215 @@ public class ManagedTraveler implements IManagedPlayer {
         soulboundItemsToReturn.clear();
     }
 
+
+    /**
+     * Checks all items in player inventory for Lasting enchantment
+     * Tracks expiration time and removes expired items
+     */
+    private void checkLastingEnchantments()
+    {
+        Inventory inventory = player.getInventory();
+        long currentTick = GENERAL_CONFIG.getTotalTickCount();
+
+        List<Integer> slotsToRemove = new ArrayList<>();
+        for (int i = 0; i < inventory.getContainerSize(); i++)
+        {
+            ItemStack stack = inventory.getItem(i);
+            if (stack.isEmpty()) continue;
+            if(!stack.isEnchanted()) continue;
+
+            int lastingLevel = EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.LASTING.get(), stack);
+            if (lastingLevel > 0)
+            {
+                Long expirationTick = getLastingExpiration(stack);
+                if (expirationTick == null)
+                {
+                    expirationTick = calculateLastingExpiration(stack, currentTick);
+                    setLastingExpiration(stack, expirationTick);
+                    LoggerProject.logDebug("020003",
+                        String.format("Player %s has new Lasting item: %s, expires at tick %d",
+                            player.getName().getString(), stack.getDisplayName().getString(), expirationTick));
+                }
+
+                // Check if item has expired
+                if (currentTick >= expirationTick) {
+                    slotsToRemove.add(i);
+
+                    LoggerProject.logInfo("020004",
+                        String.format("Lasting item expired for player %s: %s (tick %d >= %d)",
+                            player.getName().getString(), stack.getDisplayName().getString(),
+                            currentTick, expirationTick));
+                }
+            } else {
+                removeLastingExpiration(stack);
+            }
+        }
+
+        // Remove expired items
+        for (int slot : slotsToRemove)
+        {
+            ItemStack expiredStack = inventory.getItem(slot);
+            removeLastingExpiration(expiredStack);
+            inventory.setItem(slot, ItemStack.EMPTY);
+
+            // Optional: Notify player
+            MESSAGER.sendBottomActionHint(
+                Component.translatable("enchantment.hbs_traveler_rewards.lasting.expired",
+                    expiredStack.getDisplayName()).getString()
+            );
+        }
+    }
+
+    private long calculateLastingExpiration(ItemStack stack, long currentTick)
+    {
+        if (stack.hasTag() && stack.getTag().contains("LastingDuration")) {
+            long customDuration = stack.getTag().getLong("LastingDuration");
+            return currentTick + customDuration;
+        }
+        int lastingLevel = EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.LASTING.get(), stack);
+        if(lastingLevel == 0) {
+            stack.enchant(ModEnchantments.LASTING.get(), 1);
+            lastingLevel = 1;
+        }
+        int duration = ModConfig.LASTING_TICKS[ Math.min(9, lastingLevel - 1) ];
+        return currentTick + duration;
+    }
+
+
+    @Nullable
+    private Long getLastingExpiration(ItemStack stack) {
+        if (stack.hasTag() && stack.getTag().contains("LastingExpiration")) {
+            return stack.getTag().getLong("LastingExpiration");
+        }
+        return null;
+    }
+
+    private void setLastingExpiration(ItemStack stack, long expirationTick) {
+        if (!stack.hasTag()) {
+            stack.setTag(new CompoundTag());
+        }
+        stack.getTag().putLong("LastingExpiration", expirationTick);
+    }
+
+
+    private void removeLastingExpiration(ItemStack stack) {
+        if (stack.hasTag() && stack.getTag().contains("LastingExpiration")) {
+            stack.getTag().remove("LastingExpiration");
+        }
+    }
+
+
+    /**
+     * Checks all inventory slots for items of note
+     */
+    private void takeInventory()
+    {
+        //Iterate over the players entire inventory
+        mobWards.clear();
+        potionPots.clear();
+        lastingItems.clear();
+
+        ServerPlayer sp = getServerPlayer();
+        Inventory inventory = sp.getInventory();
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            ItemStack stack = inventory.getItem(i);
+            if (stack.isEmpty()) continue;
+
+            //Check for mob ward
+            if (stack.getItem() == ModItems.mobWard) {
+                mobWards.put(i, stack);
+            }
+
+            //Check for potion pot
+            if (stack.getItem() == ModItems.potionPot) {
+                potionPots.put(i, stack);
+            }
+
+            //Check for lasting enchantment
+            if(!stack.isEnchanted()) continue;
+            int lastingLevel = EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.LASTING.get(), stack);
+            if (lastingLevel > 0) {
+                lastingItems.put(i, stack);
+            }
+        }
+    }
+
+    //** Mob Ward **//
+    private void wardMobs()
+    {
+        for (ItemStack mobWardStack : mobWards.values()) {
+            //MobWardItem.wardNearbyMobs(serverPlayer, mobWardStack);
+        }
+    }
+
+    private void distractMob(Entity e) {
+
+    }
+
+
+
+    //** POTION POT **//
+
+    private static List<ItemStack> brewPotionPot(ServerPlayer player, ItemStack potionPotStack)
+    {
+        if (!potionPotStack.hasTag()) return List.of();
+
+        CompoundTag tag = potionPotStack.getTag();
+        int awkwardPotionCount = tag.getInt("AwkwardPotionCount");
+        if (awkwardPotionCount <= 0) return false;
+
+        List<ItemStack> potions = new ArrayList<>();
+
+        for(int i=0; i<awkwardPotionCount; i++) {
+            ItemStack awkwardPotion = new ItemStack(Items.POTION);
+            PotionUtils.setPotion(awkwardPotion, Potions.AWKWARD);
+            potions.add(awkwardPotion);
+        }
+
+        if (!tag.contains("Ingredient")) return false;
+
+        ItemStack ingredient = ItemStack.of(tag.getCompound("Ingredient"));
+        if (ingredient.isEmpty()) return false;
+
+
+        ItemStack awkwardPotion = new ItemStack(Items.POTION);
+        PotionUtils.setPotion(awkwardPotion, Potions.AWKWARD);
+
+        if(PotionBrewing.hasMix(awkwardPotion, ingredient))
+        {
+            //for all awkward potions
+            for(int i=0; i<awkwardPotionCount; i++) {
+
+            }
+            PotionBrewing.mix(awkwardPotion, ingredient);
+        }
+            return  false;)
+        ItemStack resultPotion = brewPotion(awkwardPotion, ingredient);
+
+        if (resultPotion.isEmpty()) {
+            // Invalid recipe
+            MESSAGER.sendBottomActionHint(
+                Component.translatable("item.hbs_traveler_rewards.potion_pot.invalid_recipe").getString()
+            );
+            return false;
+        }
+
+        // Give player the resulting potions (one for each awkward potion)
+        for (int i = 0; i < awkwardPotionCount; i++) {
+            ItemStack potionCopy = resultPotion.copy();
+            if (!player.addItem(potionCopy)) {
+                // Inventory full, drop it
+                player.drop(potionCopy, false);
+            }
+        }
+
+        return true;
+    }
+
+
+
+    //** NBT SERIALIZATION **/
+
     @Override
     public CompoundTag serializeNBT()
     {
@@ -558,11 +801,55 @@ public class ManagedTraveler implements IManagedPlayer {
 
 
     //** EVENTS
+    public static void onBeforeServerStarted(ServerStartingEvent event) {
+        GENERAL_CONFIG = GeneralConfig.getInstance();
+    }
+
     public static void onPlayerNearStructure(PlayerNearStructureEvent event) {
         Player player = event.getPlayer();
         ManagedTraveler traveler = ManagedTraveler.getManagedTraveler(player);
         if(traveler == null) return;
         traveler.onPlayerNearStructure(event.getStructureInfo());
+    }
+
+    // Add the tick handler method
+    /**
+     * Called every 20 server ticks to check for Lasting enchantment expiration
+     */
+    private static void onServer20ticks(ServerTickEvent event) {
+        for (ManagedTraveler traveler : TRAVELERS.values()) {
+            if (traveler.player instanceof ServerPlayer serverPlayer) {
+                traveler.checkLastingEnchantments();
+                traveler.wardMobs();
+            }
+        }
+    }
+
+    /**
+     * Player Drop Item
+     */
+    private static void onPlayerTossItem(TossItemEvent event)
+    {
+        Player player = event.getPlayer();
+        if (!(player instanceof ServerPlayer serverPlayer)) return;
+
+        ItemStack stack = event.getItemStack();
+        if(stack.getItem() == ModItems.potionPot)
+        {
+            if (brewPotionPot(serverPlayer, stack))
+            {
+                stack.shrink(1); // Consume one Potion Pot item
+                serverPlayer.level().playSound(
+                    null,
+                    serverPlayer.blockPosition(),
+                    SoundEvents.GLASS_BREAK,
+                    SoundSource.PLAYERS,
+                    1.0f,
+                    1.0f
+                );
+            }
+        }
+
     }
 
 

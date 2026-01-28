@@ -21,6 +21,19 @@ public class ModConfig {
     public static Set<Item> validGoldRepairItems = new HashSet<>();
     public static Set<Item> validNetheriteRepairItems = new HashSet<>();
 
+    public static final int[] LASTING_TICKS = new int[] {
+        300,
+        6000,   // Level 1 - 5 minutes
+        12000,  // Level 2 - 10 minutes
+        24000,  // Level 3 - keep doubling
+        48000,
+        96000,
+        192000,
+        384000, //16 days
+        768000,
+        1536000, //64 days
+    };
+
     public static void init(EventRegistrar reg ) {
         reg.registerOnBeforeServerStarted( ModConfig::onServerStarting, EventPriority.High );
     }

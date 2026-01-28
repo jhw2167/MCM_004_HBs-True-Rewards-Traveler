@@ -1,40 +1,26 @@
 package com.holybuckets.traveler.menu;
-
 import com.holybuckets.traveler.Constants;
-import com.holybuckets.traveler.block.be.TemplateBlockEntity;
 import net.blay09.mods.balm.api.DeferredObject;
 import net.blay09.mods.balm.api.menu.BalmMenus;
-import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class ModMenus {
 
-    public static DeferredObject<MenuType<TemplateChestEntityMenu>> countingChestMenu;
+    public static DeferredObject<MenuType<MobWardMenu>> MOB_WARD_MENU;
+    public static DeferredObject<MenuType<PotionPotMenu>> POTION_POT_MENU;
 
+    public static void initialize(BalmMenus menu) {
+        MOB_WARD_MENU = menu.registerMenu(
+            new ResourceLocation(Constants.MOD_ID, "mob_ward"),
+            MobWardMenu::new
+        );
 
-    public static void initialize(BalmMenus menus)
-    {
-        countingChestMenu = menus.registerMenu(id("counting_chest_menu"),
-            (syncId, inventory, buf) -> {
-                BlockPos pos = buf.readBlockPos();
-                Level level = inventory.player.level();
-                BlockEntity be = inventory.player.level().getBlockEntity(pos);
-                if( be instanceof TemplateBlockEntity) {
-                    TemplateBlockEntity cbe = (TemplateBlockEntity) be;
-                    cbe.setLevel(level);
-                    return new TemplateChestEntityMenu(syncId, inventory, cbe);
-                }
-                return null;
-            });
+        POTION_POT_MENU = menu.registerMenu(
+            new ResourceLocation(Constants.MOD_ID, "potion_pot"),
+            PotionPotMenu::new
+        );
     }
-
-    private static ResourceLocation id(String name) {
-        return new ResourceLocation(Constants.MOD_ID, name);
-    }
-
 }
-
-

@@ -36,6 +36,12 @@ public abstract class InteractiveRewardItem extends Item {
         this.consumeOnUse = consumeOnUse;
     }
 
+    public InteractiveRewardItem(String itemId, boolean consumeOnUse, int maxStackSize) {
+        super(Balm.getItems().itemProperties().stacksTo(maxStackSize));
+        this.itemId = itemId;
+        this.consumeOnUse = consumeOnUse;
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         super.appendHoverText(stack, level, tooltipComponents, isAdvanced);

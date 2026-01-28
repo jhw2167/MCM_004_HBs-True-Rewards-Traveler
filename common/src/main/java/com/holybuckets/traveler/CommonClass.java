@@ -3,8 +3,8 @@ package com.holybuckets.traveler;
 import com.holybuckets.foundation.event.BalmEventRegister;
 import com.holybuckets.traveler.block.ModBlocks;
 import com.holybuckets.traveler.block.be.ModBlockEntities;
-import com.holybuckets.traveler.client.ModRenderers;
 import com.holybuckets.traveler.config.TravelerRewardsConfig;
+import com.holybuckets.traveler.enchantment.ModEnchantments;
 import com.holybuckets.traveler.item.ModItems;
 import com.holybuckets.traveler.menu.ModMenus;
 import com.holybuckets.traveler.platform.Services;
@@ -41,6 +41,7 @@ public class CommonClass {
         ModBlockEntities.initialize(Balm.getBlockEntities());
         ModItems.initialize(Balm.getItems());
         ModMenus.initialize(Balm.getMenus());
+        ModEnchantments.register();
 
         
         isInitialized = true;
@@ -52,9 +53,5 @@ public class CommonClass {
     public static void sample()
     {
 
-    }
-
-    public static void initClient() {
-        ModRenderers.clientInitialize(BalmClient.getRenderers());
     }
 }

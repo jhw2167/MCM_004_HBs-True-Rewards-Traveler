@@ -65,5 +65,21 @@
   
   "item.hbs_traveler_rewards.contains": "Contains: %s",
   "item.hbs_traveler_rewards.empty": "Empty",
-  "item.hbs_traveler_rewards.tier": "Tier %s"
+  "item.hbs_traveler_rewards.tier": "Tier %s",
+
+  "enchantment.hbs_traveler_rewards.lasting": "Curse of Lasting",
+  "enchantment.hbs_traveler_rewards.lasting.desc": "Item will vanish from your inventory after several minutes or days. Lasting stacks up to X which lasts 64 days",
+  "enchantment.hbs_traveler_rewards.lasting.expired": "This item has vanished due to the Curse of Lasting!",
+
+  "item.hbs_traveler_rewards.mob_ward": "Mob Ward",
+  "item.hbs_traveler_rewards.mob_ward.desc": "Place an item to ward against specific mobs",
+  "container.hbs_traveler_rewards.mob_ward": "Mob Ward",
+  "gui.hbs_traveler_rewards.mob_ward.warding": "Warding: %s",
+  "gui.hbs_traveler_rewards.mob_ward.no_mobs": "No mobs currently warded",
+  "gui.hbs_traveler_rewards.mob_ward.slot_empty": "Place an item to ward against mobs",
+
+  "item.hbs_traveler_rewards.potion_pot": "Potion Pot",
+  "item.hbs_traveler_rewards.potion_pot.desc": "Portable brewing stand with infinite awkward potions",
+  "container.hbs_traveler_rewards.potion_pot": "Potion Pot",
+  "gui.hbs_traveler_rewards.potion_pot.locked": "Locked: Infinite Awkward Potion"
 }
