@@ -401,7 +401,7 @@ public class ManagedTraveler implements IManagedPlayer {
 
     public Set<Entity> getNearbyEntities() {
         if(managedPlayer == null) return Set.of();
-        return managedPlayer.getNearbyEntities();
+        return managedPlayer.getNearbyLivingEntities();
     }
 
     public int getCurrentlySelectedHotbarIndex() {
@@ -685,9 +685,10 @@ public class ManagedTraveler implements IManagedPlayer {
     }
 
     private static void wardEntity(Entity entity, Player player, ItemStack filterItem) {
+        if(filterItem == null || filterItem.isEmpty()) return;
         if(!(entity instanceof Mob mob)) return;
-        //Find
-        wardMob(mob, player);
+        if(ModConfig.isMobWardedByItem(mob, filterItem.getItem()))
+            wardMob(mob, player);
     }
 
     private static void wardMob(Mob mob, Player player)
@@ -822,6 +823,7 @@ public class ManagedTraveler implements IManagedPlayer {
     private static void onServer20ticks(ServerTickEvent event) {
         for (ManagedTraveler traveler : TRAVELERS.values()) {
             if (traveler.player instanceof ServerPlayer serverPlayer) {
+                traveler.takeInventory();
                 traveler.checkLastingEnchantments();
                 traveler.wardMobs();
             }
@@ -848,7 +850,7 @@ public class ManagedTraveler implements IManagedPlayer {
 
             if(!dropItems.isEmpty())
             {
-                Vec3 inFront = serverPlayer.getEyePosition().add(serverPlayer.getLookAngle().scale(1.5));
+                Vec3 inFront = serverPlayer.getEyePosition().add(serverPlayer.getLookAngle().scale(3.5));
                 for(ItemStack dropStack : dropItems)
                 {
                     ItemEntity itemEntity = new ItemEntity( serverPlayer.level(),

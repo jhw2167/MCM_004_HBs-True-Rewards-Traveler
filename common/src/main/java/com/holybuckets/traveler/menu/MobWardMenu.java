@@ -1,13 +1,20 @@
 package com.holybuckets.traveler.menu;
 
+import com.holybuckets.foundation.HBUtil;
+import com.holybuckets.traveler.config.ModConfig;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
+
+import java.util.Set;
+
+import static com.holybuckets.foundation.HBUtil.EntityUtil.entityTypeToCommonName;
 
 /**
  * Menu for Mob Ward item
@@ -114,7 +121,8 @@ public class MobWardMenu extends AbstractContainerMenu {
     /**
      * Update the ward message based on current NBT data
      */
-    public void updateWardMessage() {
+    public void updateWardMessage()
+    {
         // Read warded mob type from NBT
         if (mobWardStack.hasTag() && mobWardStack.getTag().contains("WardedMobType")) {
             String wardedMobType = mobWardStack.getTag().getString("WardedMobType");
@@ -235,33 +243,17 @@ public class MobWardMenu extends AbstractContainerMenu {
         /**
          * Derive mob type from an item (e.g., rotten flesh → zombie)
          */
-        private static String getMobTypeFromItem(ItemStack filterItem) {
-            if (filterItem.isEmpty()) {
-                return "";
+        private static String getMobTypeFromItem(ItemStack item)
+        {
+            if(item==null || item.isEmpty()) return "";
+
+            Set<EntityType<?>> set = ModConfig.getEntityTypesWardedBy(item.getItem());
+            String mobs = "";
+            for(EntityType<?> entType : set) {
+                mobs+= HBUtil.EntityUtil.entityTypeToCommonName(entType) + ", ";
             }
-
-            net.minecraft.world.item.Item item = filterItem.getItem();
-
-            // Common mob drops
-            if (item == net.minecraft.world.item.Items.ROTTEN_FLESH) return "minecraft:zombie";
-            if (item == net.minecraft.world.item.Items.BONE) return "minecraft:skeleton";
-            if (item == net.minecraft.world.item.Items.GUNPOWDER) return "minecraft:creeper";
-            if (item == net.minecraft.world.item.Items.STRING) return "minecraft:spider";
-            if (item == net.minecraft.world.item.Items.ENDER_PEARL) return "minecraft:enderman";
-            if (item == net.minecraft.world.item.Items.SPIDER_EYE) return "minecraft:spider";
-            if (item == net.minecraft.world.item.Items.SLIME_BALL) return "minecraft:slime";
-            if (item == net.minecraft.world.item.Items.MAGMA_CREAM) return "minecraft:magma_cube";
-            if (item == net.minecraft.world.item.Items.BLAZE_ROD) return "minecraft:blaze";
-            if (item == net.minecraft.world.item.Items.GHAST_TEAR) return "minecraft:ghast";
-            if (item == net.minecraft.world.item.Items.PRISMARINE_SHARD) return "minecraft:guardian";
-            if (item == net.minecraft.world.item.Items.PHANTOM_MEMBRANE) return "minecraft:phantom";
-
-            // Spawn eggs
-            if (item instanceof net.minecraft.world.item.SpawnEggItem spawnEgg) {
-                return spawnEgg.getType(null).toString();
-            }
-
-            return "";
+            //delete last char
+            return mobs.isEmpty() ? "" : mobs.substring(0, mobs.length() - 2);
         }
 
         @Override

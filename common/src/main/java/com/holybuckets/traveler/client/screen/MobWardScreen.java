@@ -45,10 +45,18 @@ public class MobWardScreen extends AbstractContainerScreen<MobWardMenu> {
 
         // Draw ward message at bottom
         Component wardMessage = this.menu.getWardMessage();
+        int color = 0xFF0000; // Purple
+        // Or use common colors:
+        // 0xFF0000 - Red
+        // 0x00FF00 - Green
+        // 0x0000FF - Blue
+        // 0xFFFF00 - Yellow
+        // 0xFF6A0DAD - Purple
+        // 0x404040 - Dark gray (default Minecraft UI)
         if (wardMessage != null && !wardMessage.getString().isEmpty()) {
             int x = this.imageWidth / 2 - this.font.width(wardMessage) / 2;
             int y = 60; // Below the slot
-            graphics.drawString(this.font, wardMessage, x, y, 0x404040, false);
+            graphics.drawString(this.font, wardMessage, x, y, color, false);
         }
     }
 }

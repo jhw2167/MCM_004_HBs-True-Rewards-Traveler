@@ -56,7 +56,7 @@ public class ModItems {
         // Register creative tab
         creativeModeTab = items.registerCreativeModeTab(
             id(MOD_ID),
-            () -> new ItemStack(soulboundRitualTablet)
+            () -> new ItemStack(hourglass)
         );
 
         // Register Simple Reward Items
