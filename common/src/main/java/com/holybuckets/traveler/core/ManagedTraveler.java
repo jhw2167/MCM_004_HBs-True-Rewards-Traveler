@@ -118,6 +118,18 @@ public class ManagedTraveler implements IManagedPlayer {
         reg.registerOnTossItem(ManagedTraveler::onPlayerTossItem);
     }
 
+    public static void useSoulboundTablet(ServerPlayer serverPlayer, InteractionHand hand, ItemStack stack) {
+        ManagedTraveler traveler = ManagedTraveler.getManagedTraveler(serverPlayer);
+        if(traveler == null) return;
+        traveler.addSoulboundSlot(hand, stack);
+    }
+
+    public static void usePureHeart(ServerPlayer serverPlayer) {
+        ManagedTraveler traveler = ManagedTraveler.getManagedTraveler(serverPlayer);
+        if(traveler == null) return;
+        traveler.addHealth(2.0); //Each Pure Heart adds 1 full heart (2 health points)
+    }
+
     //** SOULBOUND SLOT MANAGEMENT
 
     /**
@@ -128,13 +140,27 @@ public class ManagedTraveler implements IManagedPlayer {
         //1. Parse inventory for slot that matches this stack
         Inventory inventory = player.getInventory();
         int slot = inventory.findSlotMatchingItem(stack);
-        //2. Check if the slot is already soulbound
         if(slot == -1) return;
         int slotToSoulbound = slot;
-        if (soulboundSlots.contains(slot)) {
-            //set to first non soulbound slot in players internal inventory (not armor or offhand)
-            //skip hotbar and armor slots
+        //2. Check if the slot is already soulbound
+        boolean isSoulbound = soulboundSlots.contains(slot);
+        boolean isMainHand = hand.equals(InteractionHand.MAIN_HAND);
+        if(!isSoulbound) {
+            //nothing, soulbound this slot
+        }
+        else if (isSoulbound && isMainHand) //Inventory slot becomes soulbound
+        {
             for (int i = 9; i < 36; i++) {
+                if (!soulboundSlots.contains(i)) {
+                    slotToSoulbound = i;
+                    break;
+                }
+            }
+        }
+        else if(isSoulbound && !isMainHand) //Offhand becomes soulbound, the armor
+        {
+            //internally, 36= offhand, 37 = helmet...chest, leg, boots = 40
+            for (int i = 36; i < 41; i++) {
                 if (!soulboundSlots.contains(i)) {
                     slotToSoulbound = i;
                     break;

@@ -61,9 +61,14 @@ public class ModItems {
 
         // Register Simple Reward Items
         items.registerItem(() -> enchantedEssence = new SimpleRewardItem("enchanted_essence"), id("enchanted_essence"));
-        items.registerItem(() -> ironBloom = new SimpleRewardItem("iron_bloom"), id("iron_bloom"));
-        items.registerItem(() -> diamondShard = new SimpleRewardItem("diamond_shard"), id("diamond_shard"));
         items.registerItem(() -> saviorOrb = new SimpleRewardItem("savior_orb"), id("savior_orb"));
+
+        //
+        items.registerItem(() -> ironBloom = new SimpleRewardItem("iron_bloom"), id("iron_bloom"));
+        items.registerItem(() -> goldBloom = new SimpleRewardItem("gold_bloom"), id("gold_bloom"));
+        items.registerItem(() -> netheriteBloom = new SimpleRewardItem("netherite_bloom"), id("netherite_bloom"));
+        items.registerItem(() -> diamondShard = new SimpleRewardItem("diamond_shard"), id("diamond_shard"));
+
 
         // Register Interactive Reward Items
         items.registerItem(() -> pureHeart = new PureHeartItem(), id("pure_heart"));

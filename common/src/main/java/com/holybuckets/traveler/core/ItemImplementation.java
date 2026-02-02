@@ -386,6 +386,7 @@ public class ItemImplementation {
         if(!dropItems.isEmpty())
         {
             Vec3 inFront = player.getEyePosition().add(player.getLookAngle().scale(3.5));
+            inFront = inFront.add(0, -0.5, 0); // Drop slightly below eye level
             for(ItemStack dropStack : dropItems)
             {
                 ItemEntity itemEntity = new ItemEntity( player.level(),

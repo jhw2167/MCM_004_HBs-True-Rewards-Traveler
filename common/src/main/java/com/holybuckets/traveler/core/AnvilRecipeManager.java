@@ -5,6 +5,7 @@ import com.holybuckets.foundation.event.EventRegistrar;
 import com.holybuckets.foundation.event.custom.AnvilUpdateEvent;
 import com.holybuckets.traveler.TravelerRewardsMain;
 import com.holybuckets.traveler.config.ModConfig;
+import com.holybuckets.traveler.item.AnvilEnchantmentItem;
 import com.holybuckets.traveler.item.ModItems;
 import net.blay09.mods.balm.api.event.server.ServerStartingEvent;
 import net.minecraft.world.item.Item;
@@ -69,23 +70,23 @@ public class AnvilRecipeManager {
     /**
      * Whetstone adds +1 Sharpness to items that already have Sharpness
      */
-    private static void onWhetstoneEnchantUpgrade(AnvilUpdateEvent event) {
+    private static void onWhetstoneEnchantUpgrade(AnvilUpdateEvent event)
+    {
         ItemStack leftItem = event.getLeftItem();
         ItemStack rightItem = event.getRightItem();
 
         // Check if recipe matches
-        if (rightItem.getItem() != ModItems.whetstone) {
+        if (!(rightItem.getItem() instanceof AnvilEnchantmentItem anvilEnchantmentItem))
             return;
-        }
 
         // Check if item has Sharpness
         int currentSharpness = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SHARPNESS, leftItem);
-        if (currentSharpness <= 0) {
-            return; // No Sharpness, let the weapon recipe handle it
-        }
+        if (currentSharpness <= 0) return; // let the weapon recipe handle it
+        if(currentSharpness >= 10) return; // Already at max level
+        if(currentSharpness >= 5 && anvilEnchantmentItem.getTier()<2) return;
 
-        // Calculate new Sharpness level (cap at V)
-        int newSharpness = Math.min(currentSharpness + 1, 5);
+        int sharpMax = 5*anvilEnchantmentItem.getTier();
+        int newSharpness = Math.min(currentSharpness + anvilEnchantmentItem.getTier(), sharpMax);
         ItemStack result = leftItem.copy();
 
         Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(result);
@@ -94,7 +95,6 @@ public class AnvilRecipeManager {
 
         event.setResultItem(result);
         event.setCost(1);
-
     }
 
     /**
@@ -105,22 +105,15 @@ public class AnvilRecipeManager {
         ItemStack rightItem = event.getRightItem();
 
         // Check if recipe matches
-        if (!WEAPONS.contains(leftItem.getItem()) || rightItem.getItem() != ModItems.whetstone) {
+        if (!WEAPONS.contains(leftItem.getItem()) || !(rightItem.getItem() instanceof AnvilEnchantmentItem aei))
             return;
-        }
 
         // Check if already has Sharpness (let the enchant-driven recipe handle it)
         int currentSharpness = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SHARPNESS, leftItem);
-        if (currentSharpness > 0) {
-            return; // Already has Sharpness, skip this recipe
-        }
-
-        // Create output item with Sharpness I
         ItemStack result = leftItem.copy();
 
-        // Add Sharpness I
         Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(result);
-        enchantments.put(Enchantments.SHARPNESS, 1);
+        enchantments.put(Enchantments.SHARPNESS, aei.getTier()+currentSharpness );
         EnchantmentHelper.setEnchantments(enchantments, result);
 
         // Set result
