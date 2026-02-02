@@ -86,13 +86,6 @@ public class ManagedTraveler implements IManagedPlayer {
     private StructureInfo closestStructureInfo;
     private DeathLocation lastDeathLocation; // Death location tracking for Savior Orb
 
-    //Item Based
-    private final IntObjectMap<ItemStack> mobWards;
-    private final IntObjectMap<ItemStack> potionPots;
-    private final IntObjectMap<ItemStack> lastingItems;
-
-
-
     // Statistics
     private int totalDeaths;
     private int pureHeartsConsumed; // Pure Heart tracking
@@ -113,10 +106,6 @@ public class ManagedTraveler implements IManagedPlayer {
         this.lastDeathLocation = null;
         this.pureHeartsConsumed = 0;
         this.totalDeaths = 0;
-
-        this.mobWards = new IntObjectHashMap<>();
-        this.potionPots = new IntObjectHashMap<>();
-        this.lastingItems = new IntObjectHashMap<>();
     }
 
     /**
@@ -127,21 +116,6 @@ public class ManagedTraveler implements IManagedPlayer {
         reg.registerOnPlayerNearStructure(null, ManagedTraveler::onPlayerNearStructure);
         reg.registerOnServerTick(TickType.ON_20_TICKS, ManagedTraveler::onServer20ticks );
         reg.registerOnTossItem(ManagedTraveler::onPlayerTossItem);
-    }
-
-    private static final UUID PURE_HEART_MODIFIER_UUID = UUID.fromString("a3d89f7e-5c8d-4f3a-9b2e-1d4c6e8f0a1b");
-    private static final String PURE_HEART_MODIFIER_NAME = "Pure Heart";
-    private static final double HEALTH_PER_HEART = 2.0;
-    public static void usePureHeart(ServerPlayer player)
-    {
-        ManagedTraveler mt = ManagedTraveler.getManagedTraveler(player);
-        mt.addHealth(HEALTH_PER_HEART);
-    }
-
-    public static void useSoulboundTablet(ServerPlayer player, InteractionHand hand, ItemStack stack)
-    {
-        ManagedTraveler mt = ManagedTraveler.getManagedTraveler(player);
-        mt.addSoulboundSlot(hand, stack);
     }
 
     //** SOULBOUND SLOT MANAGEMENT
@@ -199,39 +173,7 @@ public class ManagedTraveler implements IManagedPlayer {
      */
     public void addHealth(double health)
     {
-        AttributeInstance healthAttribute = this.player.getAttribute(Attributes.MAX_HEALTH);
-        if (healthAttribute == null) {
-            LoggerProject.logError("020002", "Failed to retrieve MAX_HEALTH attribute for unkown reason, player: " );
-            return;
-        }
-
-
-        // Check if player already has the modifier (for stacking multiple pure hearts)
-        AttributeModifier existingModifier = healthAttribute.getModifier(PURE_HEART_MODIFIER_UUID);
-
-        double currentBonus = existingModifier != null ? existingModifier.getAmount() : 0.0;
-        double newBonus = currentBonus + health;
-
-        // Remove existing modifier if present
-        if (existingModifier != null) {
-            healthAttribute.removeModifier(PURE_HEART_MODIFIER_UUID);
-        }
-
-        // Add new modifier with increased health
-        AttributeModifier newModifier = new AttributeModifier(
-            PURE_HEART_MODIFIER_UUID, PURE_HEART_MODIFIER_NAME, newBonus,
-            AttributeModifier.Operation.ADDITION
-        );
-
-        healthAttribute.addPermanentModifier(newModifier);
-
-        // Heal player to new max health
-        player.setHealth(player.getMaxHealth());
-
-        // Send feedback message
-        //int totalHearts = (int) (newBonus / HEALTH_PER_HEART);
-        //player.sendSystemMessage(Component.translatable("item.hbs_traveler_rewards.pure_heart.success", totalHearts));
-
+        ItemImplementation.getInstance().addHealth(player, health);
         pureHeartsConsumed++;
     }
 
@@ -245,59 +187,16 @@ public class ManagedTraveler implements IManagedPlayer {
 
     public boolean isInStructure()
     {
-        StructureAPI api = TravelerRewardsMain.STRUCTURE_APIS.get(player.level());
-        BlockPos structurePos = api.nearestStructures(player.blockPosition(),1).get(0).getOrigin();
-        if(structurePos == null) return false;
-        if(BlockUtil.inRange(player.blockPosition(), structurePos, 64))
-            return true;
-        return false;
+        return ItemImplementation.getInstance().isInStructure(player);
     }
 
-    public static final int ESCAPE_ROPE_MAX_Y_CAVE_ESCAPE = 16;
     public boolean isInDeepCaves() {
-        return (player.blockPosition().getY() < ESCAPE_ROPE_MAX_Y_CAVE_ESCAPE);
-    }
-
-    /**
-     * Finds the surface directly above the player's current position
-     * @return BlockPos at surface level, or null if not found
-     */
-    @Nullable
-    private BlockPos findSurfaceAbove()
-    {
-        if (!(player instanceof ServerPlayer serverPlayer)) return null;
-
-        Level level = serverPlayer.level();
-        BlockPos playerPos = player.blockPosition();
-        int x = playerPos.getX();
-        int z = playerPos.getZ();
-
-        // Get the top solid block at this X,Z coordinate
-        // This uses Minecraft's built-in heightmap which tracks the surface
-        int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
-        BlockPos surfacePos = new BlockPos(x, surfaceY, z);
-        if (level.getBlockState(surfacePos).isAir() &&
-            level.getBlockState(surfacePos.above()).isAir()) {
-            return surfacePos;
-        }
-
-        return null;
+        return ItemImplementation.getInstance().isInDeepCaves(player);
     }
 
     public void onUseEscapeRope()
     {
-
-        if(isInStructure() && structureEntryPos != null)
-        {
-            player.teleportTo(
-                structureEntryPos.getX() + 0.5, structureEntryPos.getY(), structureEntryPos.getZ() + 0.5
-            );
-        } else if( isInDeepCaves() ) {
-            BlockPos surface = findSurfaceAbove();
-            if(surface != null)
-                player.teleportTo( surface.getX() + 0.5, surface.getY(), surface.getZ() + 0.5);
-        }
-
+        ItemImplementation.getInstance().onUseEscapeRope(player, structureEntryPos);
         structureEntryPos = null;
     }
 
@@ -540,207 +439,6 @@ public class ManagedTraveler implements IManagedPlayer {
         soulboundItemsToReturn.clear();
     }
 
-
-    /**
-     * Checks all items in player inventory for Lasting enchantment
-     * Tracks expiration time and removes expired items
-     */
-    private void checkLastingEnchantments()
-    {
-        Inventory inventory = player.getInventory();
-        long currentTick = GENERAL_CONFIG.getTotalTickCount();
-
-        List<Integer> slotsToRemove = new ArrayList<>();
-        for (Integer i : lastingItems.keySet())
-        {
-            ItemStack stack = inventory.getItem(i);
-            if (stack.isEmpty()) continue;
-            if(!stack.isEnchanted()) continue;
-
-            int lastingLevel = EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.LASTING.get(), stack);
-            if (lastingLevel > 0)
-            {
-                Long expirationTick = getLastingExpiration(stack);
-                if (expirationTick == null)
-                {
-                    expirationTick = calculateLastingExpiration(stack, currentTick);
-                    setLastingExpiration(stack, expirationTick);
-                    LoggerProject.logDebug("020003",
-                        String.format("Player %s has new Lasting item: %s, expires at tick %d",
-                            player.getName().getString(), stack.getDisplayName().getString(), expirationTick));
-                }
-
-                // Check if item has expired
-                if (currentTick >= expirationTick) {
-                    slotsToRemove.add(i);
-
-                    LoggerProject.logInfo("020004",
-                        String.format("Lasting item expired for player %s: %s (tick %d >= %d)",
-                            player.getName().getString(), stack.getDisplayName().getString(),
-                            currentTick, expirationTick));
-                }
-            } else {
-                removeLastingExpiration(stack);
-            }
-        }
-
-        // Remove expired items
-        for (int slot : slotsToRemove)
-        {
-            ItemStack expiredStack = inventory.getItem(slot);
-            removeLastingExpiration(expiredStack);
-            inventory.setItem(slot, ItemStack.EMPTY);
-
-            // Optional: Notify player
-            MESSAGER.sendBottomActionHint(
-                Component.translatable("enchantment.hbs_traveler_rewards.lasting.expired",
-                    expiredStack.getDisplayName()).getString()
-            );
-        }
-    }
-
-    private long calculateLastingExpiration(ItemStack stack, long currentTick)
-    {
-        if (stack.hasTag() && stack.getTag().contains("LastingDuration")) {
-            long customDuration = stack.getTag().getLong("LastingDuration");
-            return currentTick + customDuration;
-        }
-        int lastingLevel = EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.LASTING.get(), stack);
-        if(lastingLevel == 0) {
-            stack.enchant(ModEnchantments.LASTING.get(), 1);
-            lastingLevel = 1;
-        }
-        int duration = ModConfig.LASTING_TICKS[ Math.min(9, lastingLevel - 1) ];
-        return currentTick + duration;
-    }
-
-
-    @Nullable
-    private Long getLastingExpiration(ItemStack stack) {
-        if (stack.hasTag() && stack.getTag().contains("LastingExpiration")) {
-            return stack.getTag().getLong("LastingExpiration");
-        }
-        return null;
-    }
-
-    private void setLastingExpiration(ItemStack stack, long expirationTick) {
-        if (!stack.hasTag()) {
-            stack.setTag(new CompoundTag());
-        }
-        stack.getTag().putLong("LastingExpiration", expirationTick);
-    }
-
-
-    private void removeLastingExpiration(ItemStack stack) {
-        if (stack.hasTag() && stack.getTag().contains("LastingExpiration")) {
-            stack.getTag().remove("LastingExpiration");
-        }
-    }
-
-
-    /**
-     * Checks all inventory slots for items of note
-     */
-    private void takeInventory()
-    {
-        //Iterate over the players entire inventory
-        mobWards.clear();
-        potionPots.clear();
-        lastingItems.clear();
-
-        ServerPlayer sp = getServerPlayer();
-        Inventory inventory = sp.getInventory();
-        for (int i = 0; i < inventory.getContainerSize(); i++) {
-            ItemStack stack = inventory.getItem(i);
-            if (stack.isEmpty()) continue;
-
-            //Check for mob ward
-            if (stack.getItem() == ModItems.mobWard) {
-                mobWards.put(i, stack);
-            }
-
-            //Check for potion pot
-            if (stack.getItem() == ModItems.potionPot) {
-                potionPots.put(i, stack);
-            }
-
-            //Check for lasting enchantment
-            if(!stack.isEnchanted()) continue;
-            int lastingLevel = EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.LASTING.get(), stack);
-            if (lastingLevel > 0) {
-                lastingItems.put(i, stack);
-            }
-        }
-    }
-
-    //** Mob Ward **//
-    private void wardMobs()
-    {
-        for (ItemStack mobWardStack : mobWards.values()) {
-            if(mobWardStack.getTag().contains("filterItem")) {
-                ItemStack filterItem = ItemStack.of(mobWardStack.getTag().getCompound("filterItem"));
-                getNearbyEntities().forEach(e -> wardEntity(e, player, filterItem));
-            }
-        }
-    }
-
-    private static void wardEntity(Entity entity, Player player, ItemStack filterItem) {
-        if(filterItem == null || filterItem.isEmpty()) return;
-        if(!(entity instanceof Mob mob)) return;
-        if(ModConfig.isMobWardedByItem(mob, filterItem.getItem()))
-            wardMob(mob, player);
-    }
-
-    private static void wardMob(Mob mob, Player player)
-    {
-        if (mob.getTarget() == player) mob.setTarget(null);
-        mob.getBrain().eraseMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.ATTACK_TARGET);
-        mob.getBrain().eraseMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.ANGRY_AT);
-        boolean tooClose = HBUtil.BlockUtil.inRange(mob.blockPosition(), player.blockPosition(), 16);
-        if(tooClose) addFleeGoal(mob, player);
-    }
-
-    private static void addFleeGoal(Mob mob, Player player) {
-        Vec3 fleeDirection = mob.position().subtract(player.position()).normalize();
-        Vec3 fleeTarget = mob.position().add(fleeDirection.scale(5.0)); // Flee 5 blocks away
-        mob.getNavigation().moveTo(fleeTarget.x, fleeTarget.y, fleeTarget.z, 1.2); // 1.2 = movement speed multiplier
-    }
-
-
-
-    //** POTION POT **//
-
-    private static List<ItemStack> brewPotionPot(ServerPlayer player, ItemStack potionPotStack)
-    {
-        if (!potionPotStack.hasTag()) return List.of();
-        CompoundTag tag = potionPotStack.getTag();
-
-        int awkwardPotionCount = tag.getInt("AwkwardPotionCount");
-        if (awkwardPotionCount <= 0) return List.of();
-
-        List<ItemStack> potions = new ArrayList<>();
-        for(int i=0; i<awkwardPotionCount; i++) {
-            ItemStack awkwardPotion = new ItemStack(Items.POTION);
-            PotionUtils.setPotion(awkwardPotion, Potions.AWKWARD);
-            potions.add(awkwardPotion);
-        }
-
-        if (!tag.contains("Ingredient")) return potions;
-
-        ItemStack ingredient = ItemStack.of(tag.getCompound("Ingredient"));
-        if (ingredient.isEmpty()) return potions;
-        if (!PotionBrewing.hasMix(ingredient, potions.get(0))) return potions;
-
-        List<ItemStack> brewedPotions = new ArrayList<>();
-        for(ItemStack basePotion : potions) {
-            brewedPotions.add( PotionBrewing.mix(ingredient, basePotion) );
-        }
-
-        return brewedPotions;
-    }
-
-
-
     //** NBT SERIALIZATION **/
 
     @Override
@@ -807,6 +505,7 @@ public class ManagedTraveler implements IManagedPlayer {
     //** EVENTS
     public static void onBeforeServerStarted(ServerStartingEvent event) {
         GENERAL_CONFIG = GeneralConfig.getInstance();
+        ItemImplementation.getInstance().init(GENERAL_CONFIG);
     }
 
     public static void onPlayerNearStructure(PlayerNearStructureEvent event) {
@@ -823,9 +522,9 @@ public class ManagedTraveler implements IManagedPlayer {
     private static void onServer20ticks(ServerTickEvent event) {
         for (ManagedTraveler traveler : TRAVELERS.values()) {
             if (traveler.player instanceof ServerPlayer serverPlayer) {
-                traveler.takeInventory();
-                traveler.checkLastingEnchantments();
-                traveler.wardMobs();
+                ItemImplementation.getInstance().takeInventory(serverPlayer);
+                ItemImplementation.getInstance().checkLastingEnchantments(serverPlayer);
+                ItemImplementation.getInstance().wardMobs(serverPlayer, traveler.getNearbyEntities());
             }
         }
     }
@@ -841,25 +540,7 @@ public class ManagedTraveler implements IManagedPlayer {
         ItemStack stack = event.getItemStack();
         if(stack.getItem() == ModItems.potionPot)
         {
-            List<ItemStack> dropItems = brewPotionPot(serverPlayer, stack);
-            stack.shrink(1); // Consume one Potion Pot item
-            serverPlayer.level().playSound(null, serverPlayer.blockPosition(),
-                SoundEvents.GLASS_BREAK, SoundSource.PLAYERS,
-                1.0f, 1.0f
-            );
-
-            if(!dropItems.isEmpty())
-            {
-                Vec3 inFront = serverPlayer.getEyePosition().add(serverPlayer.getLookAngle().scale(3.5));
-                for(ItemStack dropStack : dropItems)
-                {
-                    ItemEntity itemEntity = new ItemEntity( serverPlayer.level(),
-                        inFront.x, inFront.y, inFront.z, dropStack
-                    );
-                    serverPlayer.level().addFreshEntity(itemEntity);
-                }
-            }
-
+            ItemImplementation.getInstance().handlePotionPotToss(serverPlayer, stack);
         }
 
     }

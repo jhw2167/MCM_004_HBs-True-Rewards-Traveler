@@ -56,91 +56,40 @@ import static com.holybuckets.foundation.HBUtil.BlockUtil;
 import static com.holybuckets.foundation.player.ManagedPlayer.registerManagedPlayerData;
 
 /**
- * ManagedTraveler - Tracks player-specific data for HB's Traveler Rewards
- *
+ * ItemImplementation - Singleton for handling item-specific functionality
  */
 public class ItemImplementation {
 
     public static final String CLASS_ID = "021";
 
-    //Statics
+    private static ItemImplementation instance;
     private GeneralConfig GENERAL_CONFIG;
 
-    public void init(GeneralConfig config) {
-        GENERAL_CONFIG = config;
-    }
-
-    /**
-     * Initialize event handlers
-     */
-    public static void init(EventRegistrar reg) {
-        reg.registerOnBeforeServerStarted( ItemImplementation::onBeforeServerStarted, EventPriority.Lowest );
-        reg.registerOnPlayerNearStructure(null, ItemImplementation::onPlayerNearStructure);
-        reg.registerOnServerTick(TickType.ON_20_TICKS, ItemImplementation::onServer20ticks );
-        reg.registerOnTossItem(ItemImplementation::onPlayerTossItem);
-    }
+    //Item Based
+    private final IntObjectMap<ItemStack> mobWards;
+    private final IntObjectMap<ItemStack> potionPots;
+    private final IntObjectMap<ItemStack> lastingItems;
 
     private static final UUID PURE_HEART_MODIFIER_UUID = UUID.fromString("a3d89f7e-5c8d-4f3a-9b2e-1d4c6e8f0a1b");
     private static final String PURE_HEART_MODIFIER_NAME = "Pure Heart";
     private static final double HEALTH_PER_HEART = 2.0;
-    public static void usePureHeart(ServerPlayer player)
-    {
-        ItemImplementation mt = ItemImplementation.getManagedTraveler(player);
-        mt.addHealth(HEALTH_PER_HEART);
+    public static final int ESCAPE_ROPE_MAX_Y_CAVE_ESCAPE = 16;
+
+    private ItemImplementation() {
+        this.mobWards = new IntObjectHashMap<>();
+        this.potionPots = new IntObjectHashMap<>();
+        this.lastingItems = new IntObjectHashMap<>();
     }
 
-    public static void useSoulboundTablet(ServerPlayer player, InteractionHand hand, ItemStack stack)
-    {
-        ItemImplementation mt = ItemImplementation.getManagedTraveler(player);
-        mt.addSoulboundSlot(hand, stack);
-    }
-
-    //** SOULBOUND SLOT MANAGEMENT
-
-    /**
-     * Marks a slot as soulbound (items in this slot survive death)
-     */
-    private void addSoulboundSlot(InteractionHand hand, ItemStack stack)
-    {
-        //1. Parse inventory for slot that matches this stack
-        Inventory inventory = player.getInventory();
-        int slot = inventory.findSlotMatchingItem(stack);
-        //2. Check if the slot is already soulbound
-        if(slot == -1) return;
-        int slotToSoulbound = slot;
-        if (soulboundSlots.contains(slot)) {
-            //set to first non soulbound slot in players internal inventory (not armor or offhand)
-            //skip hotbar and armor slots
-            for (int i = 9; i < 36; i++) {
-                if (!soulboundSlots.contains(i)) {
-                    slotToSoulbound = i;
-                    break;
-                }
-            }
+    public static ItemImplementation getInstance() {
+        if (instance == null) {
+            instance = new ItemImplementation();
         }
-
-        soulboundSlots.add(slotToSoulbound);
+        return instance;
     }
 
-    /**
-     * Removes soulbound status from a slot
-     */
-    public void removeSoulboundSlot(int slotIndex) {
-        soulboundSlots.remove(slotIndex);
-    }
-
-    /**
-     * Checks if a slot is soulbound
-     */
-    public boolean isSlotSoulbound(int slotIndex) {
-        return soulboundSlots.contains(slotIndex);
-    }
-
-    /**
-     * Gets all soulbound slot indices
-     */
-    public Set<Integer> getSoulboundSlots() {
-        return new HashSet<>(soulboundSlots);
+    public void init(GeneralConfig config) {
+        GENERAL_CONFIG = config;
     }
 
     //** PURE HEART TRACKING
@@ -148,14 +97,13 @@ public class ItemImplementation {
     /**
      * Records that the player consumed a Pure Heart
      */
-    public void addHealth(double health)
+    void addHealth(Player player, double health)
     {
-        AttributeInstance healthAttribute = this.player.getAttribute(Attributes.MAX_HEALTH);
+        AttributeInstance healthAttribute = player.getAttribute(Attributes.MAX_HEALTH);
         if (healthAttribute == null) {
             LoggerProject.logError("020002", "Failed to retrieve MAX_HEALTH attribute for unkown reason, player: " );
             return;
         }
-
 
         // Check if player already has the modifier (for stacking multiple pure hearts)
         AttributeModifier existingModifier = healthAttribute.getModifier(PURE_HEART_MODIFIER_UUID);
@@ -178,23 +126,9 @@ public class ItemImplementation {
 
         // Heal player to new max health
         player.setHealth(player.getMaxHealth());
-
-        // Send feedback message
-        //int totalHearts = (int) (newBonus / HEALTH_PER_HEART);
-        //player.sendSystemMessage(Component.translatable("item.hbs_traveler_rewards.pure_heart.success", totalHearts));
-
-        pureHeartsConsumed++;
     }
 
-    private void onPlayerNearStructure(StructureInfo structureInfo)
-    {
-        if(structureInfo != closestStructureInfo) {
-            structureEntryPos = player.blockPosition().offset(0,1,0);
-            closestStructureInfo = structureInfo;
-        }
-    }
-
-    public boolean isInStructure()
+    boolean isInStructure(Player player)
     {
         StructureAPI api = TravelerRewardsMain.STRUCTURE_APIS.get(player.level());
         BlockPos structurePos = api.nearestStructures(player.blockPosition(),1).get(0).getOrigin();
@@ -204,8 +138,7 @@ public class ItemImplementation {
         return false;
     }
 
-    public static final int ESCAPE_ROPE_MAX_Y_CAVE_ESCAPE = 16;
-    public boolean isInDeepCaves() {
+    boolean isInDeepCaves(Player player) {
         return (player.blockPosition().getY() < ESCAPE_ROPE_MAX_Y_CAVE_ESCAPE);
     }
 
@@ -214,7 +147,7 @@ public class ItemImplementation {
      * @return BlockPos at surface level, or null if not found
      */
     @Nullable
-    private BlockPos findSurfaceAbove()
+    private BlockPos findSurfaceAbove(Player player)
     {
         if (!(player instanceof ServerPlayer serverPlayer)) return null;
 
@@ -235,268 +168,25 @@ public class ItemImplementation {
         return null;
     }
 
-    public void onUseEscapeRope()
+    void onUseEscapeRope(Player player, BlockPos structureEntryPos)
     {
-
-        if(isInStructure() && structureEntryPos != null)
+        if(isInStructure(player) && structureEntryPos != null)
         {
             player.teleportTo(
                 structureEntryPos.getX() + 0.5, structureEntryPos.getY(), structureEntryPos.getZ() + 0.5
             );
-        } else if( isInDeepCaves() ) {
-            BlockPos surface = findSurfaceAbove();
+        } else if( isInDeepCaves(player) ) {
+            BlockPos surface = findSurfaceAbove(player);
             if(surface != null)
                 player.teleportTo( surface.getX() + 0.5, surface.getY(), surface.getZ() + 0.5);
         }
-
-        structureEntryPos = null;
     }
-
-    /**
-     * Gets the total number of Pure Hearts consumed
-     */
-    public int getPureHeartsConsumed() {
-        return pureHeartsConsumed;
-    }
-
-    //** DEATH LOCATION TRACKING
-
-    /**
-     * Records the player's death location for Savior Orb
-     */
-    public void setLastDeathLocation(DeathLocation location) {
-        this.lastDeathLocation = location;
-        
-    }
-
-    /**
-     * Gets the last death location
-     */
-    @Nullable
-    public DeathLocation getLastDeathLocation() {
-        return lastDeathLocation;
-    }
-
-    /**
-     * Clears the death location (e.g., after Savior Orb retrieves items)
-     */
-    public void clearDeathLocation() {
-        this.lastDeathLocation = null;
-        
-    }
-
-    //** STATISTICS
-
-    public int getTotalDeaths() {
-        return totalDeaths;
-    }
-
-
-    //** EVENT HANDLERS
-
-
-    //** PERSISTENT DATA MANAGEMENT
-    
-    //** STATIC UTILITY
-
-    @Nullable
-    public static ItemImplementation getManagedTraveler(Player player) {
-        if (player == null) return null;
-        return TRAVELERS.get(getId(player));
-    }
-
-    //** IMANAGED_PLAYER INTERFACE IMPLEMENTATION
-
-    @Override
-    public void setPlayer(Player player)
-    {
-        if(player == null) return;
-        if(player == this.player || player == this.localPlayer) return;
-
-        if(player instanceof ServerPlayer)
-        { //ServerPlayer serverPlayer server side only
-            if (this.player != null)
-                TRAVELERS.remove(getId(this.player));
-            this.player = player;
-            this.managedPlayer = ManagedPlayer.getManagedPlayer(player);
-        }
-        else    //clientPlayer client side only
-        {
-
-        }
-        if(localPlayer!=null)
-            TRAVELERS.remove(getId(localPlayer));
-        if(ManagedPlayer.CLIENT_PLAYER!=null)
-            this.localPlayer = ManagedPlayer.CLIENT_PLAYER.getPlayer();
-        this.localTraveler = this;
-        TRAVELERS.put(getId(player), this);
-    }
-
-    @Override
-    public void setId(String s) {
-
-    }
-
-    public static String getId(Player p) {
-        if(p==null) return null;
-        return HBUtil.PlayerUtil.getId(p);
-    }
-
-    public Player getPlayer() {
-        return player;
-    }
-
-    public ServerPlayer getServerPlayer() {
-        return (ServerPlayer) player;
-    }
-
-    public Set<Entity> getNearbyEntities() {
-        if(managedPlayer == null) return Set.of();
-        return managedPlayer.getNearbyLivingEntities();
-    }
-
-    public int getCurrentlySelectedHotbarIndex() {
-        if (player == null) return -1;
-        return player.getInventory().selected;
-    }
-
-
-    @Override
-    public boolean isServerOnly() {
-        return false;
-    }
-
-    @Override
-    public boolean isClientOnly() {
-        return false;
-    }
-
-    @Override
-    public boolean isInit(String s) {
-        return player != null;
-    }
-
-    @Override
-    @Nullable
-    public IManagedPlayer getStaticInstance(Player player, String id) {
-        return TRAVELERS.get(getId(player));
-    }
-
-    @Override
-    public void handlePlayerJoin(Player player) {
-        // Restore soulbound items if any are pending from death
-        if (player instanceof ServerPlayer serverPlayer) {
-            restoreSoulboundItems();
-        }
-    }
-
-    @Override
-    public void handlePlayerLeave(Player player) {
-        if(player==null) return;
-        localTraveler = null;
-        localPlayer = null;
-
-        this.cleanupSoulboundItemsOnLeave();
-        TRAVELERS.remove(getId(player));
-    }
-
-    /**
-     * Drop soulbound items if player left before they respawned
-     */
-    private void cleanupSoulboundItemsOnLeave()
-    {
-        if(this.getServerPlayer()==null) return;
-        if (soulboundItemsToReturn.isEmpty()) return;
-
-        BlockPos dropPoint = player.blockPosition();
-        if(dropPoint == null)
-        {
-            if(lastDeathLocation != null) {
-                dropPoint = lastDeathLocation.getPosition();
-            }
-            else {
-                if(getServerPlayer().getRespawnPosition()==null) return;
-                dropPoint = getServerPlayer().getRespawnPosition();
-            }
-        }
-
-        for(int i : soulboundItemsToReturn.keySet()) {
-            ItemStack itemStack = soulboundItemsToReturn.get(i);
-            if (!itemStack.isEmpty()) {
-                Entity item = new ItemEntity(
-                    getServerPlayer().level(),
-                    dropPoint.getX() + 0.5,  // X position (centered)
-                    dropPoint.getY() + 1.0,  // Y position (above ground)
-                    dropPoint.getZ() + 0.5,  // Z position (centered)
-                    itemStack
-                );
-                (getServerPlayer().level()).addFreshEntity(item);
-            }
-        }
-
-
-        soulboundItemsToReturn.clear();
-    }
-
-    @Override
-    public void handlePlayerRespawn(Player player) {
-        // Restore soulbound items after respawn
-        if (player instanceof ServerPlayer serverPlayer) {
-            restoreSoulboundItems();
-        }
-    }
-
-    @Override
-    public void handlePlayerDeath(Player player)
-    {
-        if(!(player instanceof ServerPlayer)) return;
-        totalDeaths++;
-
-        // Record death location for Savior Orb
-        lastDeathLocation = new DeathLocation(
-            player.blockPosition(),
-            player.level().dimension().location().toString()
-        );
-
-        // Handle soulbound slots - prevent items from dropping
-        if (!soulboundSlots.isEmpty()) {
-            Inventory inventory = player.getInventory();
-            for (int slotIndex : soulboundSlots) {
-                soulboundItemsToReturn.put(slotIndex, inventory.getItem(slotIndex));
-                inventory.setItem(slotIndex, ItemStack.EMPTY);
-            }
-        }
-
-    }
-
-    @Override
-    public void handlePlayerAttack(Player player, Entity target) {
-        // Not needed for traveler rewards
-    }
-
-    /**
-     * Restores soulbound items to player inventory after respawn
-     */
-    private void restoreSoulboundItems()
-     {
-         if(!(player instanceof ServerPlayer)) return;
-        if (soulboundItemsToReturn.isEmpty()) return;
-
-        Inventory inventory = player.getInventory();
-        for (int i : soulboundItemsToReturn.keySet()) {
-            if (!soulboundItemsToReturn.get(i).isEmpty()) {
-                inventory.setItem(i, soulboundItemsToReturn.get(i));
-            }
-        }
-        soulboundItemsToReturn.clear();
-    }
-
 
     /**
      * Checks all items in player inventory for Lasting enchantment
      * Tracks expiration time and removes expired items
      */
-    private void checkLastingEnchantments()
+    void checkLastingEnchantments(ServerPlayer player)
     {
         Inventory inventory = player.getInventory();
         long currentTick = GENERAL_CONFIG.getTotalTickCount();
@@ -565,7 +255,6 @@ public class ItemImplementation {
         return currentTick + duration;
     }
 
-
     @Nullable
     private Long getLastingExpiration(ItemStack stack) {
         if (stack.hasTag() && stack.getTag().contains("LastingExpiration")) {
@@ -581,26 +270,23 @@ public class ItemImplementation {
         stack.getTag().putLong("LastingExpiration", expirationTick);
     }
 
-
     private void removeLastingExpiration(ItemStack stack) {
         if (stack.hasTag() && stack.getTag().contains("LastingExpiration")) {
             stack.getTag().remove("LastingExpiration");
         }
     }
 
-
     /**
      * Checks all inventory slots for items of note
      */
-    private void takeInventory()
+    void takeInventory(ServerPlayer player)
     {
         //Iterate over the players entire inventory
         mobWards.clear();
         potionPots.clear();
         lastingItems.clear();
 
-        ServerPlayer sp = getServerPlayer();
-        Inventory inventory = sp.getInventory();
+        Inventory inventory = player.getInventory();
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             ItemStack stack = inventory.getItem(i);
             if (stack.isEmpty()) continue;
@@ -625,12 +311,12 @@ public class ItemImplementation {
     }
 
     //** Mob Ward **//
-    private void wardMobs()
+    void wardMobs(ServerPlayer player, Set<Entity> nearbyEntities)
     {
         for (ItemStack mobWardStack : mobWards.values()) {
             if(mobWardStack.getTag().contains("filterItem")) {
                 ItemStack filterItem = ItemStack.of(mobWardStack.getTag().getCompound("filterItem"));
-                getNearbyEntities().forEach(e -> wardEntity(e, player, filterItem));
+                nearbyEntities.forEach(e -> wardEntity(e, player, filterItem));
             }
         }
     }
@@ -656,8 +342,6 @@ public class ItemImplementation {
         Vec3 fleeTarget = mob.position().add(fleeDirection.scale(5.0)); // Flee 5 blocks away
         mob.getNavigation().moveTo(fleeTarget.x, fleeTarget.y, fleeTarget.z, 1.2); // 1.2 = movement speed multiplier
     }
-
-
 
     //** POTION POT **//
 
@@ -690,185 +374,24 @@ public class ItemImplementation {
         return brewedPotions;
     }
 
-
-
-    //** NBT SERIALIZATION **/
-
-    @Override
-    public CompoundTag serializeNBT()
+    void handlePotionPotToss(ServerPlayer player, ItemStack stack)
     {
-        CompoundTag tag = new CompoundTag();
+        List<ItemStack> dropItems = brewPotionPot(player, stack);
+        stack.shrink(1); // Consume one Potion Pot item
+        player.level().playSound(null, player.blockPosition(),
+            SoundEvents.GLASS_BREAK, SoundSource.PLAYERS,
+            1.0f, 1.0f
+        );
 
-        // Serialize soulbound slots
-        int[] slotArray = soulboundSlots.stream().mapToInt(Integer::intValue).toArray();
-        tag.putIntArray("soulbound_slots", slotArray);
-
-        // Serialize Pure Heart count
-        tag.putInt("total_hearts", pureHeartsConsumed);
-
-        // Serialize structure entry position
-        if (structureEntryPos != null) {
-            tag.putString("structure_entry_pos", BlockUtil.positionToString(structureEntryPos));
-        }
-
-        // Serialize death location
-        if (lastDeathLocation != null) {
-            tag.putString("death_location", lastDeathLocation.serialize());
-        }
-
-        // Serialize statistics
-        tag.putInt("total_deaths", totalDeaths);
-
-        return tag;
-    }
-
-    @Override
-    public void deserializeNBT(CompoundTag tag)
-    {
-        if (tag == null || tag.isEmpty()) return;
-
-        // Deserialize soulbound slots
-        if (tag.contains("soulbound_slots")) {
-            int[] slotArray = tag.getIntArray("soulbound_slots");
-            soulboundSlots.clear();
-            for (int slot : slotArray) {
-                soulboundSlots.add(slot);
-            }
-        }
-
-        // Deserialize structure entry position
-        if (tag.contains("structure_entry_pos")) {
-            String posString = tag.getString("structure_entry_pos");
-            Vec3i pos = BlockUtil.stringToBlockPos(posString);
-            structureEntryPos = (pos != null) ? new BlockPos(pos) : null;
-        }
-
-        if (tag.contains("total_hearts")) {
-            pureHeartsConsumed = tag.getInt("total_hearts");
-        }
-        if (tag.contains("death_location")) {
-            lastDeathLocation = DeathLocation.deserialize(tag.getString("death_location"));
-        }
-        if (tag.contains("total_deaths")) {
-            totalDeaths = tag.getInt("total_deaths");
-        }
-    }
-
-
-    //** EVENTS
-    public static void onBeforeServerStarted(ServerStartingEvent event) {
-        GENERAL_CONFIG = GeneralConfig.getInstance();
-    }
-
-    public static void onPlayerNearStructure(PlayerNearStructureEvent event) {
-        Player player = event.getPlayer();
-        ItemImplementation traveler = ItemImplementation.getManagedTraveler(player);
-        if(traveler == null) return;
-        traveler.onPlayerNearStructure(event.getStructureInfo());
-    }
-
-    // Add the tick handler method
-    /**
-     * Called every 20 server ticks to check for Lasting enchantment expiration
-     */
-    private static void onServer20ticks(ServerTickEvent event) {
-        for (ItemImplementation traveler : TRAVELERS.values()) {
-            if (traveler.player instanceof ServerPlayer serverPlayer) {
-                traveler.takeInventory();
-                traveler.checkLastingEnchantments();
-                traveler.wardMobs();
-            }
-        }
-    }
-
-    /**
-     * Player Drop Item
-     */
-    private static void onPlayerTossItem(TossItemEvent event)
-    {
-        Player player = event.getPlayer();
-        if (!(player instanceof ServerPlayer serverPlayer)) return;
-
-        ItemStack stack = event.getItemStack();
-        if(stack.getItem() == ModItems.potionPot)
+        if(!dropItems.isEmpty())
         {
-            List<ItemStack> dropItems = brewPotionPot(serverPlayer, stack);
-            stack.shrink(1); // Consume one Potion Pot item
-            serverPlayer.level().playSound(null, serverPlayer.blockPosition(),
-                SoundEvents.GLASS_BREAK, SoundSource.PLAYERS,
-                1.0f, 1.0f
-            );
-
-            if(!dropItems.isEmpty())
+            Vec3 inFront = player.getEyePosition().add(player.getLookAngle().scale(3.5));
+            for(ItemStack dropStack : dropItems)
             {
-                Vec3 inFront = serverPlayer.getEyePosition().add(serverPlayer.getLookAngle().scale(3.5));
-                for(ItemStack dropStack : dropItems)
-                {
-                    ItemEntity itemEntity = new ItemEntity( serverPlayer.level(),
-                        inFront.x, inFront.y, inFront.z, dropStack
-                    );
-                    serverPlayer.level().addFreshEntity(itemEntity);
-                }
-            }
-
-        }
-
-    }
-
-
-    //** INNER CLASSES
-
-    /**
-     * Represents a death location for Savior Orb tracking
-     */
-    public static class DeathLocation {
-        private final int x, y, z;
-        private final String dimensionId;
-
-        public DeathLocation(BlockPos pos, String dimensionId) {
-            this.x = pos.getX();
-            this.y = pos.getY();
-            this.z = pos.getZ();
-            this.dimensionId = dimensionId;
-        }
-
-        private DeathLocation(int x, int y, int z, String dimensionId) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.dimensionId = dimensionId;
-        }
-
-        public BlockPos getPosition() {
-            return new BlockPos(x, y, z);
-        }
-
-        public String getDimensionId() {
-            return dimensionId;
-        }
-
-        public String serialize() {
-            return String.format("%d,%d,%d|%s", x, y, z, dimensionId);
-        }
-
-        @Nullable
-        public static DeathLocation deserialize(String data) {
-            try {
-                String[] parts = data.split("\\|");
-                if (parts.length != 2) return null;
-
-                String[] coords = parts[0].split(",");
-                if (coords.length != 3) return null;
-
-                int x = Integer.parseInt(coords[0]);
-                int y = Integer.parseInt(coords[1]);
-                int z = Integer.parseInt(coords[2]);
-                String dimensionId = parts[1];
-
-                return new DeathLocation(x, y, z, dimensionId);
-            } catch (Exception e) {
-                LoggerBase.logError(null, CLASS_ID + "001", "Failed to deserialize DeathLocation: " + data);
-                return null;
+                ItemEntity itemEntity = new ItemEntity( player.level(),
+                    inFront.x, inFront.y, inFront.z, dropStack
+                );
+                player.level().addFreshEntity(itemEntity);
             }
         }
     }
