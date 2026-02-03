@@ -37,6 +37,6 @@ public class LootTableMixin {
     {
         if (pools == null || pools.isEmpty()) return;
         if (id == null || !id.getPath().contains("entities")) return;
-        ModConfig.loadEntityLootTables(id, pools, functions);
+        ModConfig.saveEntityLootTables(id, pools, functions);
     }
 }

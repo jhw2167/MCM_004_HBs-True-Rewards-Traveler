@@ -1,13 +1,12 @@
 package com.holybuckets.traveler.core;
 
-import com.holybuckets.foundation.LoggerBase;
 import com.holybuckets.foundation.event.EventRegistrar;
 import com.holybuckets.foundation.event.custom.AnvilUpdateEvent;
-import com.holybuckets.traveler.TravelerRewardsMain;
 import com.holybuckets.traveler.config.ModConfig;
 import com.holybuckets.traveler.enchantment.ModEnchantments;
 import com.holybuckets.traveler.item.AnvilEnchantmentItem;
 import com.holybuckets.traveler.item.ModItems;
+import net.blay09.mods.balm.api.event.EventPriority;
 import net.blay09.mods.balm.api.event.server.ServerStartingEvent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -16,6 +15,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,71 +34,27 @@ public class AnvilRecipeManager {
         Items.GOLDEN_AXE, Items.DIAMOND_AXE, Items.NETHERITE_AXE
     );
 
-    // Tools and armor for Unbreaking
-    private static final Set<Item> TOOLS_AND_ARMOR = Set.of(
-        Items.WOODEN_SWORD, Items.STONE_SWORD, Items.IRON_SWORD,
-        Items.GOLDEN_SWORD, Items.DIAMOND_SWORD, Items.NETHERITE_SWORD,
-        Items.WOODEN_AXE, Items.STONE_AXE, Items.IRON_AXE,
-        Items.GOLDEN_AXE, Items.DIAMOND_AXE, Items.NETHERITE_AXE,
-        Items.WOODEN_PICKAXE, Items.STONE_PICKAXE, Items.IRON_PICKAXE,
-        Items.GOLDEN_PICKAXE, Items.DIAMOND_PICKAXE, Items.NETHERITE_PICKAXE,
-        Items.WOODEN_SHOVEL, Items.STONE_SHOVEL, Items.IRON_SHOVEL,
-        Items.GOLDEN_SHOVEL, Items.DIAMOND_SHOVEL, Items.NETHERITE_SHOVEL,
-        Items.WOODEN_HOE, Items.STONE_HOE, Items.IRON_HOE,
-        Items.GOLDEN_HOE, Items.DIAMOND_HOE, Items.NETHERITE_HOE,
-        Items.LEATHER_HELMET, Items.LEATHER_CHESTPLATE, Items.LEATHER_LEGGINGS, Items.LEATHER_BOOTS,
-        Items.CHAINMAIL_HELMET, Items.CHAINMAIL_CHESTPLATE, Items.CHAINMAIL_LEGGINGS, Items.CHAINMAIL_BOOTS,
-        Items.IRON_HELMET, Items.IRON_CHESTPLATE, Items.IRON_LEGGINGS, Items.IRON_BOOTS,
-        Items.GOLDEN_HELMET, Items.GOLDEN_CHESTPLATE, Items.GOLDEN_LEGGINGS, Items.GOLDEN_BOOTS,
-        Items.DIAMOND_HELMET, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_LEGGINGS, Items.DIAMOND_BOOTS,
-        Items.NETHERITE_HELMET, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_LEGGINGS, Items.NETHERITE_BOOTS
-    );
-
-    // Diamond tools for repair recipe
-    private static final Set<Item> DIAMOND_TOOLS = Set.of(
-        Items.DIAMOND_SWORD, Items.DIAMOND_PICKAXE, Items.DIAMOND_AXE,
-        Items.DIAMOND_SHOVEL, Items.DIAMOND_HOE
-    );
-
-    // Iron tools for repair recipe
-    private static final Set<Item> IRON_TOOLS = Set.of(
-        Items.IRON_SWORD, Items.IRON_PICKAXE, Items.IRON_AXE,
-        Items.IRON_SHOVEL, Items.IRON_HOE
-    );
-
-    // Gold tools for repair recipe
-    private static final Set<Item> GOLD_TOOLS = Set.of(
-        Items.GOLDEN_SWORD, Items.GOLDEN_PICKAXE, Items.GOLDEN_AXE,
-        Items.GOLDEN_SHOVEL, Items.GOLDEN_HOE
-    );
-
-    // Netherite tools for repair recipe
-    private static final Set<Item> NETHERITE_TOOLS = Set.of(
-        Items.NETHERITE_SWORD, Items.NETHERITE_PICKAXE, Items.NETHERITE_AXE,
-        Items.NETHERITE_SHOVEL, Items.NETHERITE_HOE
-    );
-
     // Whetstone recipes
-    static AnvilUpdateEvent.EnchantDriven whetstoneEnchantDriven = new AnvilUpdateEvent.EnchantDriven(Set.of(Enchantments.SHARPNESS), ModItems.whetstone);
-    static AnvilUpdateEvent.MaterialDriven whetstoneWeaponDriven = new AnvilUpdateEvent.MaterialDriven(WEAPONS, ModItems.whetstone);
+    static AnvilUpdateEvent.EnchantDriven whetstoneEnchantDriven = new AnvilUpdateEvent.EnchantDriven(new HashSet<>(), ModItems.whetstone);
+    static AnvilUpdateEvent.MaterialDriven whetstoneWeaponDriven = new AnvilUpdateEvent.MaterialDriven(new HashSet<>(), ModItems.whetstone);
+    static AnvilUpdateEvent.EnchantDriven netheriteWhetstoneEnchantDriven = new AnvilUpdateEvent.EnchantDriven(new HashSet<>(), ModItems.netheriteWhetstone);
+    static AnvilUpdateEvent.MaterialDriven netheriteWhetstoneWeaponDriven = new AnvilUpdateEvent.MaterialDriven(new HashSet<>(), ModItems.netheriteWhetstone);
 
     // Bracing recipes
-    static AnvilUpdateEvent.EnchantDriven bracingEnchantDriven = new AnvilUpdateEvent.EnchantDriven(Set.of(Enchantments.UNBREAKING), ModItems.bracing);
-    static AnvilUpdateEvent.MaterialDriven bracingToolDriven = new AnvilUpdateEvent.MaterialDriven(TOOLS_AND_ARMOR, ModItems.bracing);
-    static AnvilUpdateEvent.EnchantDriven netheriteBracingEnchantDriven = new AnvilUpdateEvent.EnchantDriven(Set.of(Enchantments.UNBREAKING), ModItems.netheriteBracing);
-    static AnvilUpdateEvent.MaterialDriven netheriteBracingToolDriven = new AnvilUpdateEvent.MaterialDriven(TOOLS_AND_ARMOR, ModItems.netheriteBracing);
+    static AnvilUpdateEvent.EnchantDriven bracingEnchantDriven = new AnvilUpdateEvent.EnchantDriven(new HashSet<>(), ModItems.bracing);
+    static AnvilUpdateEvent.MaterialDriven bracingToolDriven = new AnvilUpdateEvent.MaterialDriven(new HashSet<>(), ModItems.bracing);
+    static AnvilUpdateEvent.EnchantDriven netheriteBracingEnchantDriven = new AnvilUpdateEvent.EnchantDriven(new HashSet<>(), ModItems.netheriteBracing);
+    static AnvilUpdateEvent.MaterialDriven netheriteBracingToolDriven = new AnvilUpdateEvent.MaterialDriven(new HashSet<>(), ModItems.netheriteBracing);
 
     // Hourglass recipes
-    static AnvilUpdateEvent.EnchantDriven hourglassEnchantDriven = new AnvilUpdateEvent.EnchantDriven(Set.of(ModEnchantments.LASTING.get()), ModItems.hourglass);
-    static AnvilUpdateEvent.MaterialDriven hourglassToolDriven = new AnvilUpdateEvent.MaterialDriven(TOOLS_AND_ARMOR, ModItems.hourglass);
-    static AnvilUpdateEvent.EnchantDriven diamondHourglassEnchantDriven = new AnvilUpdateEvent.EnchantDriven(Set.of(ModEnchantments.LASTING.get()), ModItems.diamondHourglass);
-    static AnvilUpdateEvent.MaterialDriven diamondHourglassToolDriven = new AnvilUpdateEvent.MaterialDriven(TOOLS_AND_ARMOR, ModItems.diamondHourglass);
+    static AnvilUpdateEvent.EnchantDriven hourglassEnchantDriven = new AnvilUpdateEvent.EnchantDriven(new HashSet<>(), ModItems.hourglass);
+    static AnvilUpdateEvent.EnchantDriven diamondHourglassEnchantDriven = new AnvilUpdateEvent.EnchantDriven(new HashSet<>(), ModItems.diamondHourglass);
 
     // Repair recipes
-    static AnvilUpdateEvent.MaterialDriven diamondShardRepair = new AnvilUpdateEvent.MaterialDriven(DIAMOND_TOOLS, ModItems.diamondShard);
-    static AnvilUpdateEvent.MaterialDriven ironBloomRepair = new AnvilUpdateEvent.MaterialDriven(IRON_TOOLS, ModItems.ironBloom);
-    static AnvilUpdateEvent.MaterialDriven goldBloomRepair = new AnvilUpdateEvent.MaterialDriven(GOLD_TOOLS, ModItems.goldBloom);
-    static AnvilUpdateEvent.MaterialDriven netheriteBloomRepair = new AnvilUpdateEvent.MaterialDriven(NETHERITE_TOOLS, ModItems.netheriteBloom);
+    static AnvilUpdateEvent.MaterialDriven diamondShardRepair = new AnvilUpdateEvent.MaterialDriven(ModConfig.validDiamondRepairItems, ModItems.diamondShard);
+    static AnvilUpdateEvent.MaterialDriven ironBloomRepair = new AnvilUpdateEvent.MaterialDriven(ModConfig.validIronRepairItems, ModItems.ironBloom);
+    static AnvilUpdateEvent.MaterialDriven goldBloomRepair = new AnvilUpdateEvent.MaterialDriven(ModConfig.validGoldRepairItems, ModItems.goldBloom);
+    static AnvilUpdateEvent.MaterialDriven netheriteBloomRepair = new AnvilUpdateEvent.MaterialDriven(ModConfig.validNetheriteRepairItems, ModItems.netheriteBloom);
 
     /**
      * Initialize anvil recipes and register event handlers
@@ -107,18 +63,19 @@ public class AnvilRecipeManager {
         // Whetstone recipes
         registrar.registerOnAnvilUpdate(whetstoneEnchantDriven, AnvilRecipeManager::onWhetstoneEnchantUpgrade);
         registrar.registerOnAnvilUpdate(whetstoneWeaponDriven, AnvilRecipeManager::onWhetstoneWeaponUpgrade);
+        registrar.registerOnAnvilUpdate(netheriteWhetstoneEnchantDriven, AnvilRecipeManager::onWhetstoneEnchantUpgrade);
+        registrar.registerOnAnvilUpdate(netheriteWhetstoneWeaponDriven, AnvilRecipeManager::onWhetstoneWeaponUpgrade);
+
 
         // Bracing recipes
         registrar.registerOnAnvilUpdate(bracingEnchantDriven, AnvilRecipeManager::onBracingEnchantUpgrade);
         registrar.registerOnAnvilUpdate(bracingToolDriven, AnvilRecipeManager::onBracingToolUpgrade);
-        registrar.registerOnAnvilUpdate(netheriteBracingEnchantDriven, AnvilRecipeManager::onNetheriteBracingEnchantUpgrade);
-        registrar.registerOnAnvilUpdate(netheriteBracingToolDriven, AnvilRecipeManager::onNetheriteBracingToolUpgrade);
+        registrar.registerOnAnvilUpdate(netheriteBracingEnchantDriven, AnvilRecipeManager::onBracingEnchantUpgrade);
+        registrar.registerOnAnvilUpdate(netheriteBracingToolDriven, AnvilRecipeManager::onBracingToolUpgrade);
 
         // Hourglass recipes
         registrar.registerOnAnvilUpdate(hourglassEnchantDriven, AnvilRecipeManager::onHourglassEnchantUpgrade);
-        registrar.registerOnAnvilUpdate(hourglassToolDriven, AnvilRecipeManager::onHourglassToolUpgrade);
-        registrar.registerOnAnvilUpdate(diamondHourglassEnchantDriven, AnvilRecipeManager::onDiamondHourglassEnchantUpgrade);
-        registrar.registerOnAnvilUpdate(diamondHourglassToolDriven, AnvilRecipeManager::onDiamondHourglassToolUpgrade);
+        registrar.registerOnAnvilUpdate(diamondHourglassEnchantDriven, AnvilRecipeManager::onHourglassEnchantUpgrade);
 
         // Repair recipes
         registrar.registerOnAnvilUpdate(diamondShardRepair, AnvilRecipeManager::onDiamondShardRepair);
@@ -126,46 +83,55 @@ public class AnvilRecipeManager {
         registrar.registerOnAnvilUpdate(goldBloomRepair, AnvilRecipeManager::onGoldBloomRepair);
         registrar.registerOnAnvilUpdate(netheriteBloomRepair, AnvilRecipeManager::onNetheriteBloomRepair);
 
-        registrar.registerOnBeforeServerStarted(AnvilRecipeManager::completeAnvilRegistration);
+        registrar.registerOnBeforeServerStarted(AnvilRecipeManager::completeAnvilRegistration, EventPriority.Lowest);
     }
 
     private static void completeAnvilRegistration(ServerStartingEvent event) {
         // Whetstone
         whetstoneEnchantDriven.setRightItem(ModItems.whetstone.getDefaultInstance());
+        whetstoneEnchantDriven.setLeftEnchantments(Set.of(Enchantments.SHARPNESS));
         whetstoneWeaponDriven.setLeftMaterials(ModConfig.validWhetstoneItems);
         whetstoneWeaponDriven.setRightItem(ModItems.whetstone.getDefaultInstance());
 
+        // Netherite Whetstone
+        netheriteWhetstoneEnchantDriven.setRightItem(ModItems.netheriteWhetstone.getDefaultInstance());
+        netheriteWhetstoneEnchantDriven.setLeftEnchantments(Set.of(Enchantments.SHARPNESS));
+        netheriteWhetstoneWeaponDriven.setLeftMaterials(ModConfig.validWhetstoneItems);
+        netheriteWhetstoneWeaponDriven.setRightItem(ModItems.netheriteWhetstone.getDefaultInstance());
+
         // Bracing
         bracingEnchantDriven.setRightItem(ModItems.bracing.getDefaultInstance());
+        bracingEnchantDriven.setLeftEnchantments(Set.of(Enchantments.UNBREAKING));
         bracingToolDriven.setLeftMaterials(ModConfig.validBracingItems);
         bracingToolDriven.setRightItem(ModItems.bracing.getDefaultInstance());
+        // Netherite Bracing
         netheriteBracingEnchantDriven.setRightItem(ModItems.netheriteBracing.getDefaultInstance());
+        netheriteBracingEnchantDriven.setLeftEnchantments(Set.of(Enchantments.UNBREAKING));
         netheriteBracingToolDriven.setLeftMaterials(ModConfig.validBracingItems);
         netheriteBracingToolDriven.setRightItem(ModItems.netheriteBracing.getDefaultInstance());
 
         // Hourglass
         hourglassEnchantDriven.setRightItem(ModItems.hourglass.getDefaultInstance());
-        hourglassToolDriven.setLeftMaterials(ModConfig.validHourglassItems);
-        hourglassToolDriven.setRightItem(ModItems.hourglass.getDefaultInstance());
+        hourglassEnchantDriven.setLeftEnchantments(Set.of(ModEnchantments.LASTING.get()));
         diamondHourglassEnchantDriven.setRightItem(ModItems.diamondHourglass.getDefaultInstance());
-        diamondHourglassToolDriven.setLeftMaterials(ModConfig.validHourglassItems);
-        diamondHourglassToolDriven.setRightItem(ModItems.diamondHourglass.getDefaultInstance());
+        diamondHourglassEnchantDriven.setLeftEnchantments(Set.of(ModEnchantments.LASTING.get()));
 
         // Repair items
-        diamondShardRepair.setLeftMaterials(ModConfig.validDiamondShardItems);
+        diamondShardRepair.setLeftMaterials(ModConfig.validDiamondRepairItems);
         diamondShardRepair.setRightItem(ModItems.diamondShard.getDefaultInstance());
-        ironBloomRepair.setLeftMaterials(ModConfig.validIronBloomItems);
+        ironBloomRepair.setLeftMaterials(ModConfig.validIronRepairItems);
         ironBloomRepair.setRightItem(ModItems.ironBloom.getDefaultInstance());
-        goldBloomRepair.setLeftMaterials(ModConfig.validGoldBloomItems);
+        goldBloomRepair.setLeftMaterials(ModConfig.validGoldRepairItems);
         goldBloomRepair.setRightItem(ModItems.goldBloom.getDefaultInstance());
-        netheriteBloomRepair.setLeftMaterials(ModConfig.validNetheriteBloomItems);
+        netheriteBloomRepair.setLeftMaterials(ModConfig.validNetheriteRepairItems);
         netheriteBloomRepair.setRightItem(ModItems.netheriteBloom.getDefaultInstance());
     }
 
     /**
      * Whetstone adds +1 Sharpness to items that already have Sharpness
      */
-    private static void onWhetstoneEnchantUpgrade(AnvilUpdateEvent event) {
+    private static void onWhetstoneEnchantUpgrade(AnvilUpdateEvent event)
+    {
         ItemStack leftItem = event.getLeftItem();
         ItemStack rightItem = event.getRightItem();
 
@@ -218,7 +184,8 @@ public class AnvilRecipeManager {
     /**
      * Bracing adds +1 Unbreaking to items that already have Unbreaking
      */
-    private static void onBracingEnchantUpgrade(AnvilUpdateEvent event) {
+    private static void onBracingEnchantUpgrade(AnvilUpdateEvent event)
+    {
         ItemStack leftItem = event.getLeftItem();
         ItemStack rightItem = event.getRightItem();
 
@@ -229,10 +196,10 @@ public class AnvilRecipeManager {
         // Check if item has Unbreaking
         int currentUnbreaking = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.UNBREAKING, leftItem);
         if (currentUnbreaking <= 0) return; // let the tool recipe handle it
-        if (currentUnbreaking >= 6) return; // Already at max level
-        if (currentUnbreaking >= 3 && anvilEnchantmentItem.getTier() < 2) return;
+        if (currentUnbreaking >= 10) return; // Already at max level
+        if (currentUnbreaking >= 5 && anvilEnchantmentItem.getTier() < 2) return;
 
-        int unbreakingMax = 3 * anvilEnchantmentItem.getTier();
+        int unbreakingMax = 5 * anvilEnchantmentItem.getTier();
         int newUnbreaking = Math.min(currentUnbreaking + anvilEnchantmentItem.getTier(), unbreakingMax);
         ItemStack result = leftItem.copy();
 
@@ -252,7 +219,8 @@ public class AnvilRecipeManager {
         ItemStack rightItem = event.getRightItem();
 
         // Check if recipe matches
-        if (!TOOLS_AND_ARMOR.contains(leftItem.getItem()) || !(rightItem.getItem() instanceof AnvilEnchantmentItem aei))
+
+        if (!ModConfig.validBracingItems.contains(leftItem.getItem()) || !(rightItem.getItem() instanceof AnvilEnchantmentItem aei))
             return;
 
         // Check if already has Unbreaking (let the enchant-driven recipe handle it)
@@ -268,61 +236,12 @@ public class AnvilRecipeManager {
         event.setCost(1);
     }
 
-    /**
-     * Netherite Bracing adds +2 Unbreaking to items that already have Unbreaking
-     */
-    private static void onNetheriteBracingEnchantUpgrade(AnvilUpdateEvent event) {
-        ItemStack leftItem = event.getLeftItem();
-        ItemStack rightItem = event.getRightItem();
-
-        // Check if recipe matches
-        if (!(rightItem.getItem() instanceof AnvilEnchantmentItem anvilEnchantmentItem))
-            return;
-
-        // Check if item has Unbreaking
-        int currentUnbreaking = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.UNBREAKING, leftItem);
-        if (currentUnbreaking <= 0) return; // let the tool recipe handle it
-        if (currentUnbreaking >= 6) return; // Already at max level
-
-        int newUnbreaking = Math.min(currentUnbreaking + anvilEnchantmentItem.getTier(), 6);
-        ItemStack result = leftItem.copy();
-
-        Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(result);
-        enchantments.put(Enchantments.UNBREAKING, newUnbreaking);
-        EnchantmentHelper.setEnchantments(enchantments, result);
-
-        event.setResultItem(result);
-        event.setCost(1);
-    }
-
-    /**
-     * Netherite Bracing adds Unbreaking II to any tool or armor
-     */
-    private static void onNetheriteBracingToolUpgrade(AnvilUpdateEvent event) {
-        ItemStack leftItem = event.getLeftItem();
-        ItemStack rightItem = event.getRightItem();
-
-        // Check if recipe matches
-        if (!TOOLS_AND_ARMOR.contains(leftItem.getItem()) || !(rightItem.getItem() instanceof AnvilEnchantmentItem aei))
-            return;
-
-        // Check if already has Unbreaking (let the enchant-driven recipe handle it)
-        int currentUnbreaking = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.UNBREAKING, leftItem);
-        ItemStack result = leftItem.copy();
-
-        Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(result);
-        enchantments.put(Enchantments.UNBREAKING, aei.getTier() + currentUnbreaking);
-        EnchantmentHelper.setEnchantments(enchantments, result);
-
-        // Set result
-        event.setResultItem(result);
-        event.setCost(1);
-    }
 
     /**
      * Hourglass adds +1 Lasting to items that already have Lasting
      */
-    private static void onHourglassEnchantUpgrade(AnvilUpdateEvent event) {
+    private static void onHourglassEnchantUpgrade(AnvilUpdateEvent event)
+    {
         ItemStack leftItem = event.getLeftItem();
         ItemStack rightItem = event.getRightItem();
 
@@ -334,7 +253,6 @@ public class AnvilRecipeManager {
         int currentLasting = EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.LASTING.get(), leftItem);
         if (currentLasting <= 0) return; // let the tool recipe handle it
         if (currentLasting >= 10) return; // Already at max level
-        if (currentLasting >= 5 && anvilEnchantmentItem.getTier() < 2) return;
 
         int lastingMax = 5 * anvilEnchantmentItem.getTier();
         int newLasting = Math.min(currentLasting + anvilEnchantmentItem.getTier(), lastingMax);
@@ -344,84 +262,11 @@ public class AnvilRecipeManager {
         enchantments.put(ModEnchantments.LASTING.get(), newLasting);
         EnchantmentHelper.setEnchantments(enchantments, result);
 
+        ItemImplementation.getInstance().removeLastingExpiration(result);
         event.setResultItem(result);
         event.setCost(1);
     }
 
-    /**
-     * Hourglass adds Lasting I to any tool or armor
-     */
-    private static void onHourglassToolUpgrade(AnvilUpdateEvent event) {
-        ItemStack leftItem = event.getLeftItem();
-        ItemStack rightItem = event.getRightItem();
-
-        // Check if recipe matches
-        if (!TOOLS_AND_ARMOR.contains(leftItem.getItem()) || !(rightItem.getItem() instanceof AnvilEnchantmentItem aei))
-            return;
-
-        // Check if already has Lasting (let the enchant-driven recipe handle it)
-        int currentLasting = EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.LASTING.get(), leftItem);
-        ItemStack result = leftItem.copy();
-
-        Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(result);
-        enchantments.put(ModEnchantments.LASTING.get(), aei.getTier() + currentLasting);
-        EnchantmentHelper.setEnchantments(enchantments, result);
-
-        // Set result
-        event.setResultItem(result);
-        event.setCost(1);
-    }
-
-    /**
-     * Diamond Hourglass adds +2 Lasting to items that already have Lasting
-     */
-    private static void onDiamondHourglassEnchantUpgrade(AnvilUpdateEvent event) {
-        ItemStack leftItem = event.getLeftItem();
-        ItemStack rightItem = event.getRightItem();
-
-        // Check if recipe matches
-        if (!(rightItem.getItem() instanceof AnvilEnchantmentItem anvilEnchantmentItem))
-            return;
-
-        // Check if item has Lasting
-        int currentLasting = EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.LASTING.get(), leftItem);
-        if (currentLasting <= 0) return; // let the tool recipe handle it
-        if (currentLasting >= 10) return; // Already at max level
-
-        int newLasting = Math.min(currentLasting + anvilEnchantmentItem.getTier(), 10);
-        ItemStack result = leftItem.copy();
-
-        Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(result);
-        enchantments.put(ModEnchantments.LASTING.get(), newLasting);
-        EnchantmentHelper.setEnchantments(enchantments, result);
-
-        event.setResultItem(result);
-        event.setCost(1);
-    }
-
-    /**
-     * Diamond Hourglass adds Lasting II to any tool or armor
-     */
-    private static void onDiamondHourglassToolUpgrade(AnvilUpdateEvent event) {
-        ItemStack leftItem = event.getLeftItem();
-        ItemStack rightItem = event.getRightItem();
-
-        // Check if recipe matches
-        if (!TOOLS_AND_ARMOR.contains(leftItem.getItem()) || !(rightItem.getItem() instanceof AnvilEnchantmentItem aei))
-            return;
-
-        // Check if already has Lasting (let the enchant-driven recipe handle it)
-        int currentLasting = EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.LASTING.get(), leftItem);
-        ItemStack result = leftItem.copy();
-
-        Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(result);
-        enchantments.put(ModEnchantments.LASTING.get(), aei.getTier() + currentLasting);
-        EnchantmentHelper.setEnchantments(enchantments, result);
-
-        // Set result
-        event.setResultItem(result);
-        event.setCost(1);
-    }
 
     /**
      * Diamond Shard repairs diamond tools (same amount as using a diamond)
@@ -431,25 +276,17 @@ public class AnvilRecipeManager {
         ItemStack rightItem = event.getRightItem();
 
         // Check if recipe matches
-        if (!DIAMOND_TOOLS.contains(leftItem.getItem()) || rightItem.getItem() != ModItems.diamondShard) {
+        if (!ModConfig.validDiamondRepairItems.contains(leftItem.getItem()) || rightItem.getItem() != ModItems.diamondShard) {
             return;
         }
+        if (!leftItem.isDamaged()) return; // Not damaged, no need to repair
 
-        // Check if item is damaged
-        if (!leftItem.isDamaged()) {
-            return; // Not damaged, no need to repair
-        }
-
-        // Calculate repair amount (1 diamond = 25% of max durability)
         int repairAmount = leftItem.getMaxDamage() / 4;
         int currentDamage = leftItem.getDamageValue();
         int newDamage = Math.max(0, currentDamage - repairAmount);
 
-        // Create repaired item
         ItemStack result = leftItem.copy();
         result.setDamageValue(newDamage);
-
-        // Set result
         event.setResultItem(result);
         event.setCost(1); // Moderate cost for repair
     }
@@ -457,30 +294,24 @@ public class AnvilRecipeManager {
     /**
      * Iron Bloom repairs iron tools (same amount as using an iron ingot)
      */
-    private static void onIronBloomRepair(AnvilUpdateEvent event) {
+    private static void onIronBloomRepair(AnvilUpdateEvent event)
+    {
         ItemStack leftItem = event.getLeftItem();
         ItemStack rightItem = event.getRightItem();
 
         // Check if recipe matches
-        if (!IRON_TOOLS.contains(leftItem.getItem()) || rightItem.getItem() != ModItems.ironBloom) {
+        if (!ModConfig.validDiamondRepairItems.contains(leftItem.getItem()) || rightItem.getItem() != ModItems.ironBloom)
             return;
-        }
 
-        // Check if item is damaged
-        if (!leftItem.isDamaged()) {
-            return; // Not damaged, no need to repair
-        }
+        if (!leftItem.isDamaged()) return;
 
-        // Calculate repair amount (1 iron ingot = 25% of max durability)
         int repairAmount = leftItem.getMaxDamage() / 4;
         int currentDamage = leftItem.getDamageValue();
         int newDamage = Math.max(0, currentDamage - repairAmount);
 
-        // Create repaired item
         ItemStack result = leftItem.copy();
         result.setDamageValue(newDamage);
 
-        // Set result
         event.setResultItem(result);
         event.setCost(1); // Moderate cost for repair
     }
@@ -492,26 +323,17 @@ public class AnvilRecipeManager {
         ItemStack leftItem = event.getLeftItem();
         ItemStack rightItem = event.getRightItem();
 
-        // Check if recipe matches
-        if (!GOLD_TOOLS.contains(leftItem.getItem()) || rightItem.getItem() != ModItems.goldBloom) {
+        if (!ModConfig.validGoldRepairItems.contains(leftItem.getItem()) || rightItem.getItem() != ModItems.goldBloom)
             return;
-        }
 
-        // Check if item is damaged
-        if (!leftItem.isDamaged()) {
-            return; // Not damaged, no need to repair
-        }
+        if (!leftItem.isDamaged()) return;
 
-        // Calculate repair amount (1 gold ingot = 25% of max durability)
         int repairAmount = leftItem.getMaxDamage() / 4;
         int currentDamage = leftItem.getDamageValue();
         int newDamage = Math.max(0, currentDamage - repairAmount);
 
-        // Create repaired item
         ItemStack result = leftItem.copy();
         result.setDamageValue(newDamage);
-
-        // Set result
         event.setResultItem(result);
         event.setCost(1); // Moderate cost for repair
     }
@@ -524,14 +346,10 @@ public class AnvilRecipeManager {
         ItemStack rightItem = event.getRightItem();
 
         // Check if recipe matches
-        if (!NETHERITE_TOOLS.contains(leftItem.getItem()) || rightItem.getItem() != ModItems.netheriteBloom) {
+        if (!ModConfig.validNetheriteRepairItems.contains(leftItem.getItem()) || rightItem.getItem() != ModItems.netheriteBloom) {
             return;
         }
-
-        // Check if item is damaged
-        if (!leftItem.isDamaged()) {
-            return; // Not damaged, no need to repair
-        }
+        if (!leftItem.isDamaged()) return;
 
         // Calculate repair amount (1 netherite ingot = 25% of max durability)
         int repairAmount = leftItem.getMaxDamage() / 4;

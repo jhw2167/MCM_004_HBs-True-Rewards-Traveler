@@ -6,6 +6,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+
+import javax.imageio.spi.IIORegistry;
+
 import static com.holybuckets.traveler.Constants.MOD_ID;
 
 /**
@@ -19,14 +22,18 @@ public class ModItems {
 
     // Simple Reward Items (basic items with no special behavior)
     public static SimpleRewardItem enchantedEssence;
-    public static SimpleRewardItem ironBloom;
-    public static SimpleRewardItem diamondShard;
     public static SimpleRewardItem saviorOrb;
+
+    public static SimpleRewardItem ironBloom;
+    public static SimpleRewardItem goldBloom;
+    public static SimpleRewardItem diamondShard;
+    public static SimpleRewardItem netheriteBloom;
 
     // Interactive Reward Items (right-click interactions)
     public static PureHeartItem pureHeart;
     public static SoulboundRitualTabletItem soulboundRitualTablet;
     public static FabricationRitualTabletItem fabricationRitualTablet;
+    public static WarriorRitualTabletItem warriorRitualTablet;
     public static PotionPotItem potionPot;
     public static EscapeRopeItem escapeRope;
 
@@ -74,6 +81,7 @@ public class ModItems {
         items.registerItem(() -> pureHeart = new PureHeartItem(), id("pure_heart"));
         items.registerItem(() -> soulboundRitualTablet = new SoulboundRitualTabletItem(), id("soulbound_ritual_tablet"));
         items.registerItem(() -> fabricationRitualTablet = new FabricationRitualTabletItem(), id("fabrication_ritual_tablet"));
+        items.registerItem(() -> warriorRitualTablet = new WarriorRitualTabletItem(), id("warrior_ritual_tablet"));
         items.registerItem(() -> potionPot = new PotionPotItem(), id("potion_pot"));
         items.registerItem(() -> escapeRope = new EscapeRopeItem(), id("escape_rope"));
 

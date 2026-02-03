@@ -5,7 +5,13 @@
   
   "item.hbs_traveler_rewards.iron_bloom": "Iron Bloom",
   "item.hbs_traveler_rewards.iron_bloom.desc": "Portion of an Iron Ingot that can be used to repair tools or armor but not to create new equipment",
-  
+
+  "item.hbs_traveler_rewards.gold_bloom": "Gold Bloom",
+  "item.hbs_traveler_rewards.gold_bloom.desc": "Portion of a Gold Ingot that can be used to repair tools or armor but not to create new equipment",
+
+  "item.hbs_traveler_rewards.netherite_bloom": "Netherite Bloom",
+  "item.hbs_traveler_rewards.netherite_bloom.desc": "Portion of a Netherite Ingot that can be used to repair tools or armor but not to create new equipment",
+
   "item.hbs_traveler_rewards.diamond_shard": "Diamond Shard",
   "item.hbs_traveler_rewards.diamond_shard.desc": "Piece of a diamond that can be used to repair tools or armor but not to create new equipment",
   
@@ -17,16 +23,19 @@
   "item.hbs_traveler_rewards.pure_heart.success": "Extra heart granted!",
   
   "item.hbs_traveler_rewards.soulbound_ritual_tablet": "Soulbound Ritual Tablet",
-  "item.hbs_traveler_rewards.soulbound_ritual_tablet.desc": "Right-click to make the current Item Slot 'Soulbound'. Right clicking a slot which is already Soulbound will make an internal inventory slot soulbound",
+  "item.hbs_traveler_rewards.soulbound_ritual_tablet.desc": "Right-click to make the current Item Slot 'Soulbound'. Right clicking a slot which is already Soulbound will make an internal inventory slot soulbound.",
   "item.hbs_traveler_rewards.soulbound_ritual_tablet.success": "Slot %s is now soulbound!",
   "item.hbs_traveler_rewards.soulbound_ritual_tablet.already_bound": "This slot is already soulbound",
   
   "item.hbs_traveler_rewards.fabrication_ritual_tablet": "Fabrication Ritual Tablet",
-  "item.hbs_traveler_rewards.fabrication_ritual_tablet.desc": "A magic ritual granted to the Ancient Builders. It duplicates the contentes of a chest filled with building materials",
+  "item.hbs_traveler_rewards.fabrication_ritual_tablet.desc": "A magic ritual granted to the Ancient Builders. It duplicates the contentes of a chest filled with building materials.",
   "item.hbs_traveler_rewards.fabrication_ritual_tablet.success": "Duplicated %s stacks!",
   "item.hbs_traveler_rewards.fabrication_ritual_tablet.no_space": "No spot to place duplicate chest",
   "item.hbs_traveler_rewards.fabrication_ritual_tablet.invalid_target": "Must be used on a chest",
-  
+
+  "item.hbs_traveler_rewards.warrior_ritual_tablet": "Warrior Ritual Tablet",
+  "item.hbs_traveler_rewards.warrior_ritual_tablet.desc": "A magic ritual granted to the Ancient Warriors. The ritual reduces player attack cooldown and knockback from mobs.",
+
   "item.hbs_traveler_rewards.potion_pot": "Potion Pot",
   "item.hbs_traveler_rewards.potion_pot.desc": "Cooks potion instantly, breaks on use. Add ingredients to the Pot inventory and then right click on water to brew.",
   "item.hbs_traveler_rewards.potion_pot.brewing": "Brewing...",
@@ -34,11 +43,14 @@
   "item.hbs_traveler_rewards.escape_rope": "Escape Rope",
   "item.hbs_traveler_rewards.escape_rope.desc": "Helps escape from a structure or cave system but only works at full health",
   "item.hbs_traveler_rewards.escape_rope.success": "Escaped successfully!",
-  "item.hbs_traveler_rewards.escape_rope.not_full_health": "You must be at full health to escape",
+  "item.hbs_traveler_rewards.escape_rope.not_full_health": "You must be at full health to use the Escape Rope",
   "item.hbs_traveler_rewards.escape_rope.no_safe_location": "Could not find a safe location",
   "item.hbs_traveler_rewards.escape_rope.failed": "Unable to escape from this location",
   "item.hbs_traveler_rewards.escape_rope.not_in_structure": "You must be inside a structure or deep cave to escape",
-  
+
+  "item.hbs_traveler_rewards.anvil_item.relic_max_level": "This artifact cannot enchant past level %s",
+  "item.hbs_traveler_rewards.anvil_item.item_max_level": "This item cannot be enchanted past level %s",
+
   "item.hbs_traveler_rewards.whetstone": "Whetstone",
   "item.hbs_traveler_rewards.whetstone.desc": "Adds 1 level of Sharpness to any weapon in an anvil. Up to Sharpness V.",
   

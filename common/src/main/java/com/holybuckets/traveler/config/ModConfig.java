@@ -1,7 +1,6 @@
 package com.holybuckets.traveler.config;
 
 import com.holybuckets.foundation.HBUtil;
-import com.holybuckets.foundation.LoggerBase;
 import com.holybuckets.foundation.event.EventRegistrar;
 import com.holybuckets.traveler.LoggerProject;
 import com.holybuckets.traveler.TravelerRewardsMain;
@@ -10,17 +9,15 @@ import net.blay09.mods.balm.api.event.server.ServerStartingEvent;
 import net.blay09.mods.balm.api.event.server.ServerStoppedEvent;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootPool;
-import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -30,13 +27,13 @@ public class ModConfig {
     public static Set<Block> validFabricatedBlocks = new HashSet<>();
     public static Set<Item> validWhetstoneItems = new HashSet<>();
     public static Set<Item> validBracingItems = new HashSet<>();
-    public static Set<Item> validDiamondShardItems = new HashSet<>();
-    public static Set<Item> validIronBloomItems = new HashSet<>();
+    public static Set<Item> validDiamondRepairItems = new HashSet<>();
+    public static Set<Item> validIronRepairItems = new HashSet<>();
     public static Set<Item> validGoldRepairItems = new HashSet<>();
     public static Set<Item> validNetheriteRepairItems = new HashSet<>();
 
     private static final Map<EntityType<?>, Set<Item>> mobDrops = new HashMap<>();
-    private static final Map<ResourceLocation, Set<Item>> mobLootTables = new HashMap<>();
+    private static final Map<ResourceLocation, List<LootPool>> mobLootTables = new HashMap<>();
 
     public static final int[] LASTING_TICKS = new int[] {
         300,
@@ -61,10 +58,10 @@ public class ModConfig {
         TravelerRewardsConfig CONFIG = TravelerRewardsMain.CONFIG;
 
         validBracingItems.clear();
-        validDiamondShardItems.clear();
+        validDiamondRepairItems.clear();
         validFabricatedBlocks.clear();
         validGoldRepairItems.clear();
-        validIronBloomItems.clear();
+        validIronRepairItems.clear();
         validNetheriteRepairItems.clear();
         validWhetstoneItems.clear();
 
@@ -84,24 +81,17 @@ public class ModConfig {
             }
         }
         
-        for( String itemId : CONFIG.anvilRewards.bracingEquipment ) {
-            Item item = HBUtil.ItemUtil.itemNameToItem(itemId);
-            if( item != null ) {
-                validBracingItems.add(item);
-            }
-        }
-        
         for( String itemId : CONFIG.anvilRewards.diamondRepairEquip ) {
             Item item = HBUtil.ItemUtil.itemNameToItem(itemId);
             if( item != null ) {
-                validDiamondShardItems.add(item);
+                validDiamondRepairItems.add(item);
             }
         }
         
         for( String itemId : CONFIG.anvilRewards.ironRepairEquip ) {
             Item item = HBUtil.ItemUtil.itemNameToItem(itemId);
             if( item != null ) {
-                validIronBloomItems.add(item);
+                validIronRepairItems.add(item);
             }
         }
         
@@ -119,6 +109,18 @@ public class ModConfig {
             }
         }
 
+        validBracingItems.addAll(validWhetstoneItems);
+        validBracingItems.addAll(validIronRepairItems);
+        validBracingItems.addAll(validGoldRepairItems);
+        validBracingItems.addAll(validDiamondRepairItems);
+        validBracingItems.addAll(validNetheriteRepairItems);
+        for( String itemId : CONFIG.anvilRewards.bracingEquipment ) {
+            Item item = HBUtil.ItemUtil.itemNameToItem(itemId);
+            if( item != null ) {
+                validBracingItems.add(item);
+            }
+        }
+
         //Init Mob Drops by scanning Entity Type and Loot Tables Registries
         Registry<EntityType<?>> entities = BuiltInRegistries.ENTITY_TYPE;
         for( ResourceLocation entityLoc : mobLootTables.keySet() )
@@ -126,7 +128,7 @@ public class ModConfig {
             EntityType<?> entityType = entities.get(entityLoc);
             if( entityType == null ) continue;
             Set<Item> drops = mobDrops.getOrDefault( entityType, new HashSet<>() );
-            drops.addAll( mobLootTables.get(entityLoc) );
+            drops.addAll( loadEntityLootTables(entityLoc) );
             mobDrops.put( entityType, drops );
         }
 
@@ -150,11 +152,11 @@ public class ModConfig {
     }
     
     public static boolean isValidDiamondShardItem(Item item) {
-        return validDiamondShardItems.contains(item);
+        return validDiamondRepairItems.contains(item);
     }
     
     public static boolean isValidIronBloomItem(Item item) {
-        return validIronBloomItems.contains(item);
+        return validIronRepairItems.contains(item);
     }
     
     public static boolean isValidGoldRepairItem(Item item) {
@@ -201,11 +203,22 @@ public class ModConfig {
         }
     }
 
-    public static void loadEntityLootTables(ResourceLocation id, List<LootPool> pools, LootItemFunction[] functions)
-    {
+    public static void saveEntityLootTables(ResourceLocation id, List<LootPool> pools, LootItemFunction[] functions) {
         ResourceLocation loc = extractEntityId(id);
         if(loc==null) return;
-        Set<Item> lootItems = mobLootTables.getOrDefault(id, new HashSet<>());
+        if(pools == null) return;
+        mobLootTables.put(id, pools);
+    }
+    //saveEntityLootTables
+    //public static void loadEntityLootTables(ResourceLocation id, List<LootPool> pools, LootItemFunction[] functions)
+
+    public static Set<Item> loadEntityLootTables(ResourceLocation loc)
+    {
+        if(loc==null) return Set.of();
+        Set<Item> lootItems = new HashSet<>();
+        if(!mobLootTables.containsKey(loc)) return Set.of();
+        List<LootPool> pools = mobLootTables.get(loc);
+
 
         try {
             for (LootPool pool : pools) {
@@ -220,12 +233,10 @@ public class ModConfig {
                 }
             }
         } catch (Exception e) {
-            LoggerProject.logDebug("001010", "Failed to load loot table for " + id + ": " + e.getMessage());
+            LoggerProject.logDebug("001010", "Failed to load loot table for " + loc + ": " + e.getMessage());
         }
 
-        if (!lootItems.isEmpty()) {
-            mobLootTables.put( loc, lootItems);
-        }
+      return lootItems;
     }
 
     private static ResourceLocation extractEntityId(ResourceLocation lootTableLoc) {

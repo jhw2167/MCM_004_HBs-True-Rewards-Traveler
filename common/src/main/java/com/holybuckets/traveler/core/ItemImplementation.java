@@ -51,11 +51,6 @@ public class ItemImplementation {
     private static final UUID PURE_HEART_MODIFIER_UUID = UUID.fromString("a3d89f7e-5c8d-4f3a-9b2e-1d4c6e8f0a1b");
     private static final String PURE_HEART_MODIFIER_NAME = "Pure Heart";
     private static final double HEALTH_PER_HEART = 2.0;
-    public static final int ESCAPE_ROPE_MAX_Y_CAVE_ESCAPE = 16;
-
-    private static final UUID WARRIOR_RITUAL_MODIFIER_UUID = UUID.fromString("b4e8af8f-6d9e-5f4b-ac3f-2e5d7f9g1c2d");
-    private static final String WARRIOR_RITUAL_MODIFIER_NAME = "Warrior Ritual Bonus";
-    private static final float ATK_SPEED_BONUS = 1.20f;
 
     private ItemImplementation() {
         GENERAL_CONFIG = GeneralConfig.getInstance();
@@ -73,7 +68,7 @@ public class ItemImplementation {
     /**
      * Records that the player consumed a Pure Heart
      */
-    void addHealth(Player player, double health)
+    void setHealth(Player player, int heartsConsumed)
     {
         AttributeInstance healthAttribute = player.getAttribute(Attributes.MAX_HEALTH);
         if (healthAttribute == null) {
@@ -84,8 +79,9 @@ public class ItemImplementation {
         // Check if player already has the modifier (for stacking multiple pure hearts)
         AttributeModifier existingModifier = healthAttribute.getModifier(PURE_HEART_MODIFIER_UUID);
 
-        double currentBonus = existingModifier != null ? existingModifier.getAmount() : 0.0;
-        double newBonus = currentBonus + health;
+        //double currentBonus = existingModifier != null ? existingModifier.getAmount() : 0.0;
+        double currentBonus = 0.0;
+        double newBonus = currentBonus + (heartsConsumed * HEALTH_PER_HEART);
 
         // Remove existing modifier if present
         if (existingModifier != null) {
@@ -97,7 +93,7 @@ public class ItemImplementation {
             AttributeModifier.Operation.ADDITION
         );
 
-        healthAttribute.addPermanentModifier(newModifier);
+        healthAttribute.addTransientModifier(newModifier);
         player.setHealth(player.getMaxHealth());
     }
 
@@ -111,6 +107,7 @@ public class ItemImplementation {
         return false;
     }
 
+    public static final int ESCAPE_ROPE_MAX_Y_CAVE_ESCAPE = 16;
     boolean isInDeepCaves(Player player) {
         return (player.blockPosition().getY() < ESCAPE_ROPE_MAX_Y_CAVE_ESCAPE);
     }
@@ -337,16 +334,17 @@ public class ItemImplementation {
         }
     }
 
+    private static final UUID WARRIOR_RITUAL_MODIFIER_UUID = UUID.fromString("b4e8af8f-6d9e-5f4b-ac3f-2e5d7f9d1c2d");
+    private static final String WARRIOR_RITUAL_MODIFIER_NAME = "Warrior Ritual Bonus";
+    private static final float ATK_SPEED_BONUS = 1.20f;
+
     /**
      * Applies warrior ritual attack speed bonus to player
      */
     void applyWarriorRitualBonus(Player player, int warriorTabletsUsed)
     {
         AttributeInstance attackSpeedAttribute = player.getAttribute(Attributes.ATTACK_SPEED);
-        if (attackSpeedAttribute ==  null) {
-            LoggerProject.logError("021001", "Failed to retrieve ATTACK_SPEED attribute for unknown reason, player: " + player.getName().getString());
-            return;
-        }
+        if (attackSpeedAttribute ==  null) return;
 
         // Calculate base attack speed from all other modifiers
         double baseAttackSpeed = Attributes.ATTACK_SPEED.getDefaultValue();
@@ -363,16 +361,11 @@ public class ItemImplementation {
             attackSpeedAttribute.removeModifier(WARRIOR_RITUAL_MODIFIER_UUID);
         }
 
-        // Calculate new bonus based on warrior tablets used
-        if (warriorTabletsUsed > 0) {
-            double bonusAmount = (baseAttackSpeed * Math.pow(ATK_SPEED_BONUS, warriorTabletsUsed)) - baseAttackSpeed;
-            
-            AttributeModifier newModifier = new AttributeModifier(
-                WARRIOR_RITUAL_MODIFIER_UUID, WARRIOR_RITUAL_MODIFIER_NAME, bonusAmount,
-                AttributeModifier.Operation.ADDITION
-            );
-
-            attackSpeedAttribute.addPermanentModifier(newModifier);
-        }
+        double bonusAmount = (baseAttackSpeed * Math.pow(ATK_SPEED_BONUS, warriorTabletsUsed)) - baseAttackSpeed;
+        AttributeModifier newModifier = new AttributeModifier(
+            WARRIOR_RITUAL_MODIFIER_UUID, WARRIOR_RITUAL_MODIFIER_NAME, bonusAmount,
+            AttributeModifier.Operation.ADDITION
+        );
+        attackSpeedAttribute.addTransientModifier(newModifier);
     }
 }

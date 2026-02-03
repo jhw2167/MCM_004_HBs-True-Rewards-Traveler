@@ -12,20 +12,18 @@ import net.minecraft.world.level.Level;
  * Soulbound Ritual Tablet - Marks the inventory slot it's used in as soulbound
  * Items in soulbound slots are kept after death
  */
-public class WarriorRitualTablet extends InteractiveRewardItem {
+public class WarriorRitualTabletItem extends InteractiveRewardItem {
 
-    public static final String WARRIOR_TAG = "hbs_soulbound_slot";
+    public static final String WARRIOR_TAG = "hbs_warrior_slot";
 
-    public WarriorRitualTablet() {
+    public WarriorRitualTabletItem() {
         super("warrior_ritual_tablet", true); // Consumes on use
     }
 
     @Override
     protected InteractionResult onRightClickAir(Level level, Player player, InteractionHand hand, ItemStack stack) {
-        if (player instanceof ServerPlayer serverPlayer) {
-            ManagedTraveler.useSoulboundTablet(serverPlayer, hand, stack);
-            //remove item
-            stack.shrink(1);
+        if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
+            ManagedTraveler.useWarriorRitualTablet(serverPlayer);
         }
         return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
     }

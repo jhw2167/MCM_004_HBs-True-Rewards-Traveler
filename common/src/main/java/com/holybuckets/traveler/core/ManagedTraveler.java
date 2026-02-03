@@ -9,12 +9,7 @@ import com.holybuckets.foundation.event.custom.ServerTickEvent;
 import com.holybuckets.foundation.event.custom.TickType;
 import com.holybuckets.foundation.modelInterface.IManagedPlayer;
 import com.holybuckets.foundation.player.ManagedPlayer;
-import com.holybuckets.foundation.structure.StructureAPI;
 import com.holybuckets.foundation.structure.StructureInfo;
-import com.holybuckets.foundation.structure.StructureManager;
-import com.holybuckets.traveler.LoggerProject;
-import com.holybuckets.traveler.TravelerRewardsMain;
-import com.holybuckets.traveler.config.ModConfig;
 import com.holybuckets.traveler.enchantment.ModEnchantments;
 import com.holybuckets.traveler.item.ModItems;
 import io.netty.util.collection.IntObjectHashMap;
@@ -25,37 +20,21 @@ import net.blay09.mods.balm.api.event.server.ServerStartingEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionBrewing;
-import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.holybuckets.foundation.CommonClass.MESSAGER;
 import static com.holybuckets.foundation.player.ManagedPlayer.registerManagedPlayerData;
-import static  com.holybuckets.foundation.HBUtil.BlockUtil;
 
 /**
  * ManagedTraveler - Tracks player-specific data for HB's Traveler Rewards
@@ -74,6 +53,10 @@ public class ManagedTraveler implements IManagedPlayer {
 
     // Static registry of all travelers
     static final Map<String, ManagedTraveler> TRAVELERS = new ConcurrentHashMap<>();
+    private final IntObjectMap<ItemStack> mobWards;
+    private final IntObjectMap<ItemStack> potionPots;
+    private final IntObjectMap<ItemStack> lastingItems;
+    private final Set<ItemStack> weapons;
 
     // Player reference
     private Player player;
@@ -82,6 +65,7 @@ public class ManagedTraveler implements IManagedPlayer {
     public static ManagedTraveler localTraveler;
     private final Set<Integer> soulboundSlots; // Soulbound slot tracking (slot index -> is soulbound)
     private final IntObjectMap<ItemStack> soulboundItemsToReturn; //The items in the soulbound slots we must return to player. Must be careful if they leave the game after dying.
+    private final Set<ItemStack> checkedWeapons;
     private BlockPos structureEntryPos;
     private StructureInfo closestStructureInfo;
     private DeathLocation lastDeathLocation; // Death location tracking for Savior Orb
@@ -89,9 +73,12 @@ public class ManagedTraveler implements IManagedPlayer {
     // Statistics
     private int totalDeaths;
     private int pureHeartsConsumed; // Pure Heart tracking
+    private int warriorTabletsUsed;
+    private int lastWarriorRitual;
 
     //Statics
     private static GeneralConfig GENERAL_CONFIG;
+    private static ItemImplementation ITEM_IMPLEMENTATION;
 
     //utility
 
@@ -103,9 +90,17 @@ public class ManagedTraveler implements IManagedPlayer {
         this.player = player;
         this.soulboundItemsToReturn = new IntObjectHashMap<>();
         this.soulboundSlots = new HashSet<>();
+        this.checkedWeapons = new HashSet<>();
         this.lastDeathLocation = null;
         this.pureHeartsConsumed = 0;
         this.totalDeaths = 0;
+        this.warriorTabletsUsed = 0;
+        this.lastWarriorRitual = -1;
+
+        this.mobWards = new IntObjectHashMap<>();
+        this.potionPots = new IntObjectHashMap<>();
+        this.lastingItems = new IntObjectHashMap<>();
+        this.weapons = new HashSet<>();
     }
 
     /**
@@ -127,7 +122,14 @@ public class ManagedTraveler implements IManagedPlayer {
     public static void usePureHeart(ServerPlayer serverPlayer) {
         ManagedTraveler traveler = ManagedTraveler.getManagedTraveler(serverPlayer);
         if(traveler == null) return;
-        traveler.addHealth(2.0); //Each Pure Heart adds 1 full heart (2 health points)
+        traveler.addHealth();
+    }
+
+    public static void useWarriorRitualTablet(ServerPlayer serverPlayer) {
+        ManagedTraveler traveler = ManagedTraveler.getManagedTraveler(serverPlayer);
+        if(traveler == null) return;
+        traveler.warriorTabletsUsed++;
+        traveler.checkedWeapons.clear();
     }
 
     //** SOULBOUND SLOT MANAGEMENT
@@ -197,10 +199,9 @@ public class ManagedTraveler implements IManagedPlayer {
     /**
      * Records that the player consumed a Pure Heart
      */
-    public void addHealth(double health)
-    {
-        ItemImplementation.getInstance().addHealth(player, health);
+    public void addHealth() {
         pureHeartsConsumed++;
+        ITEM_IMPLEMENTATION.setHealth(player, pureHeartsConsumed);
     }
 
     private void onPlayerNearStructure(StructureInfo structureInfo)
@@ -213,16 +214,16 @@ public class ManagedTraveler implements IManagedPlayer {
 
     public boolean isInStructure()
     {
-        return ItemImplementation.getInstance().isInStructure(player);
+        return ITEM_IMPLEMENTATION.isInStructure(player);
     }
 
     public boolean isInDeepCaves() {
-        return ItemImplementation.getInstance().isInDeepCaves(player);
+        return ITEM_IMPLEMENTATION.isInDeepCaves(player);
     }
 
     public void onUseEscapeRope()
     {
-        ItemImplementation.getInstance().onUseEscapeRope(player, structureEntryPos);
+        ITEM_IMPLEMENTATION.onUseEscapeRope(player, structureEntryPos);
         structureEntryPos = null;
     }
 
@@ -259,12 +260,19 @@ public class ManagedTraveler implements IManagedPlayer {
         
     }
 
-    //** STATISTICS
-
     public int getTotalDeaths() {
         return totalDeaths;
     }
 
+    private void applyWarriorRitualBonus()
+    {
+        if(player.getAttributes() == null) return;
+        if(player.getAttributes().getInstance(Attributes.ATTACK_SPEED) == null) return;
+
+        if(lastWarriorRitual == warriorTabletsUsed) return;
+        ITEM_IMPLEMENTATION.applyWarriorRitualBonus(player, warriorTabletsUsed);
+        lastWarriorRitual = warriorTabletsUsed;
+    }
 
     //** EVENT HANDLERS
 
@@ -465,6 +473,50 @@ public class ManagedTraveler implements IManagedPlayer {
         soulboundItemsToReturn.clear();
     }
 
+    /**
+     * Checks all inventory slots for items of note
+     */
+    void takeInventory()
+    {
+        //Iterate over the players entire inventory
+        mobWards.clear();
+        potionPots.clear();
+        lastingItems.clear();
+        weapons.clear();
+
+        Inventory inventory = player.getInventory();
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            ItemStack stack = inventory.getItem(i);
+            if (stack.isEmpty()) continue;
+
+            //Check for mob ward
+            if (stack.getItem() == ModItems.mobWard) {
+                mobWards.put(i, stack);
+            }
+
+            //Check for potion pot
+            if (stack.getItem() == ModItems.potionPot) {
+                potionPots.put(i, stack);
+            }
+
+
+            if(stack.isEnchantable()) {     //not relevant at the moment
+                //Item item = stack.getItem();
+                //weapons.add(stack);
+            }
+
+            //Check for lasting enchantment
+            if(!stack.isEnchanted()) continue;
+            int lastingLevel = EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.LASTING.get(), stack);
+            if (lastingLevel > 0) {
+                lastingItems.put(i, stack);
+            }
+
+
+        }
+
+    }
+
     //** NBT SERIALIZATION **/
 
     @Override
@@ -476,20 +528,17 @@ public class ManagedTraveler implements IManagedPlayer {
         int[] slotArray = soulboundSlots.stream().mapToInt(Integer::intValue).toArray();
         tag.putIntArray("soulbound_slots", slotArray);
 
-        // Serialize Pure Heart count
         tag.putInt("total_hearts", pureHeartsConsumed);
+        tag.putInt("warrior_tablets", warriorTabletsUsed);
 
-        // Serialize structure entry position
         if (structureEntryPos != null) {
             tag.putString("structure_entry_pos", HBUtil.BlockUtil.positionToString(structureEntryPos));
         }
 
-        // Serialize death location
         if (lastDeathLocation != null) {
             tag.putString("death_location", lastDeathLocation.serialize());
         }
 
-        // Serialize statistics
         tag.putInt("total_deaths", totalDeaths);
 
         return tag;
@@ -519,6 +568,9 @@ public class ManagedTraveler implements IManagedPlayer {
         if (tag.contains("total_hearts")) {
             pureHeartsConsumed = tag.getInt("total_hearts");
         }
+        if (tag.contains("warrior_tablets")) {
+            //warriorTabletsUsed = tag.getInt("warrior_tablets");
+        }
         if (tag.contains("death_location")) {
             lastDeathLocation = DeathLocation.deserialize(tag.getString("death_location"));
         }
@@ -531,7 +583,7 @@ public class ManagedTraveler implements IManagedPlayer {
     //** EVENTS
     public static void onBeforeServerStarted(ServerStartingEvent event) {
         GENERAL_CONFIG = GeneralConfig.getInstance();
-        ItemImplementation.getInstance().init(GENERAL_CONFIG);
+        ITEM_IMPLEMENTATION = ItemImplementation.getInstance();
     }
 
     public static void onPlayerNearStructure(PlayerNearStructureEvent event) {
@@ -547,10 +599,12 @@ public class ManagedTraveler implements IManagedPlayer {
      */
     private static void onServer20ticks(ServerTickEvent event) {
         for (ManagedTraveler traveler : TRAVELERS.values()) {
+            if(traveler.player == null) continue;
             if (traveler.player instanceof ServerPlayer serverPlayer) {
-                ItemImplementation.getInstance().takeInventory(serverPlayer);
-                ItemImplementation.getInstance().checkLastingEnchantments(serverPlayer);
-                ItemImplementation.getInstance().wardMobs(serverPlayer, traveler.getNearbyEntities());
+                traveler.takeInventory();
+                traveler.applyWarriorRitualBonus();
+                ITEM_IMPLEMENTATION.checkLastingEnchantments(serverPlayer, traveler.lastingItems);
+                ITEM_IMPLEMENTATION.wardMobs(serverPlayer, traveler.mobWards, traveler.getNearbyEntities());
             }
         }
     }
@@ -566,7 +620,7 @@ public class ManagedTraveler implements IManagedPlayer {
         ItemStack stack = event.getItemStack();
         if(stack.getItem() == ModItems.potionPot)
         {
-            ItemImplementation.getInstance().handlePotionPotToss(serverPlayer, stack);
+            ITEM_IMPLEMENTATION.handlePotionPotToss(serverPlayer, stack);
         }
 
     }

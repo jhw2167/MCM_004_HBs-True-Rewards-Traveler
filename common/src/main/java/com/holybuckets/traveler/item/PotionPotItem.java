@@ -26,7 +26,7 @@ public class PotionPotItem extends InteractiveRewardItem {
     private static final Random RANDOM = new Random();
 
     public PotionPotItem() {
-        super("potion_pot", false, 1); // Does not consume on use
+        super("potion_pot", false, 16); // Does not consume on use
     }
 
     @Override
