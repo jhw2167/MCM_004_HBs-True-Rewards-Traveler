@@ -1,34 +1,18 @@
 package com.holybuckets.traveler.core;
 
 import com.holybuckets.foundation.GeneralConfig;
-import com.holybuckets.foundation.HBUtil;
-import com.holybuckets.foundation.LoggerBase;
-import com.holybuckets.foundation.event.EventRegistrar;
-import com.holybuckets.foundation.event.custom.PlayerNearStructureEvent;
-import com.holybuckets.foundation.event.custom.ServerTickEvent;
-import com.holybuckets.foundation.event.custom.TickType;
-import com.holybuckets.foundation.modelInterface.IManagedPlayer;
-import com.holybuckets.foundation.player.ManagedPlayer;
 import com.holybuckets.foundation.structure.StructureAPI;
-import com.holybuckets.foundation.structure.StructureInfo;
 import com.holybuckets.traveler.LoggerProject;
 import com.holybuckets.traveler.TravelerRewardsMain;
 import com.holybuckets.traveler.config.ModConfig;
 import com.holybuckets.traveler.enchantment.ModEnchantments;
-import com.holybuckets.traveler.item.ModItems;
-import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
-import net.blay09.mods.balm.api.event.EventPriority;
-import net.blay09.mods.balm.api.event.TossItemEvent;
-import net.blay09.mods.balm.api.event.server.ServerStartingEvent;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -49,11 +33,9 @@ import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.holybuckets.foundation.CommonClass.MESSAGER;
 import static com.holybuckets.foundation.HBUtil.BlockUtil;
-import static com.holybuckets.foundation.player.ManagedPlayer.registerManagedPlayerData;
 
 /**
  * ItemImplementation - Singleton for handling item-specific functionality
@@ -65,10 +47,6 @@ public class ItemImplementation {
     private static ItemImplementation instance;
     private GeneralConfig GENERAL_CONFIG;
 
-    //Item Based
-    private final IntObjectMap<ItemStack> mobWards;
-    private final IntObjectMap<ItemStack> potionPots;
-    private final IntObjectMap<ItemStack> lastingItems;
 
     private static final UUID PURE_HEART_MODIFIER_UUID = UUID.fromString("a3d89f7e-5c8d-4f3a-9b2e-1d4c6e8f0a1b");
     private static final String PURE_HEART_MODIFIER_NAME = "Pure Heart";
@@ -76,9 +54,7 @@ public class ItemImplementation {
     public static final int ESCAPE_ROPE_MAX_Y_CAVE_ESCAPE = 16;
 
     private ItemImplementation() {
-        this.mobWards = new IntObjectHashMap<>();
-        this.potionPots = new IntObjectHashMap<>();
-        this.lastingItems = new IntObjectHashMap<>();
+        GENERAL_CONFIG = GeneralConfig.getInstance();
     }
 
     public static ItemImplementation getInstance() {
@@ -86,10 +62,6 @@ public class ItemImplementation {
             instance = new ItemImplementation();
         }
         return instance;
-    }
-
-    public void init(GeneralConfig config) {
-        GENERAL_CONFIG = config;
     }
 
     //** PURE HEART TRACKING
@@ -116,15 +88,12 @@ public class ItemImplementation {
             healthAttribute.removeModifier(PURE_HEART_MODIFIER_UUID);
         }
 
-        // Add new modifier with increased health
         AttributeModifier newModifier = new AttributeModifier(
             PURE_HEART_MODIFIER_UUID, PURE_HEART_MODIFIER_NAME, newBonus,
             AttributeModifier.Operation.ADDITION
         );
 
         healthAttribute.addPermanentModifier(newModifier);
-
-        // Heal player to new max health
         player.setHealth(player.getMaxHealth());
     }
 
@@ -186,7 +155,7 @@ public class ItemImplementation {
      * Checks all items in player inventory for Lasting enchantment
      * Tracks expiration time and removes expired items
      */
-    void checkLastingEnchantments(ServerPlayer player)
+    void checkLastingEnchantments(ServerPlayer player, IntObjectMap<ItemStack> lastingItems)
     {
         Inventory inventory = player.getInventory();
         long currentTick = GENERAL_CONFIG.getTotalTickCount();
@@ -256,62 +225,29 @@ public class ItemImplementation {
     }
 
     @Nullable
-    private Long getLastingExpiration(ItemStack stack) {
+    public Long getLastingExpiration(ItemStack stack) {
         if (stack.hasTag() && stack.getTag().contains("LastingExpiration")) {
             return stack.getTag().getLong("LastingExpiration");
         }
         return null;
     }
 
-    private void setLastingExpiration(ItemStack stack, long expirationTick) {
+    public void setLastingExpiration(ItemStack stack, long expirationTick) {
         if (!stack.hasTag()) {
             stack.setTag(new CompoundTag());
         }
         stack.getTag().putLong("LastingExpiration", expirationTick);
     }
 
-    private void removeLastingExpiration(ItemStack stack) {
+    public void removeLastingExpiration(ItemStack stack) {
         if (stack.hasTag() && stack.getTag().contains("LastingExpiration")) {
             stack.getTag().remove("LastingExpiration");
         }
     }
 
-    /**
-     * Checks all inventory slots for items of note
-     */
-    void takeInventory(ServerPlayer player)
-    {
-        //Iterate over the players entire inventory
-        mobWards.clear();
-        potionPots.clear();
-        lastingItems.clear();
-
-        Inventory inventory = player.getInventory();
-        for (int i = 0; i < inventory.getContainerSize(); i++) {
-            ItemStack stack = inventory.getItem(i);
-            if (stack.isEmpty()) continue;
-
-            //Check for mob ward
-            if (stack.getItem() == ModItems.mobWard) {
-                mobWards.put(i, stack);
-            }
-
-            //Check for potion pot
-            if (stack.getItem() == ModItems.potionPot) {
-                potionPots.put(i, stack);
-            }
-
-            //Check for lasting enchantment
-            if(!stack.isEnchanted()) continue;
-            int lastingLevel = EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.LASTING.get(), stack);
-            if (lastingLevel > 0) {
-                lastingItems.put(i, stack);
-            }
-        }
-    }
 
     //** Mob Ward **//
-    void wardMobs(ServerPlayer player, Set<Entity> nearbyEntities)
+    void wardMobs(ServerPlayer player, IntObjectMap<ItemStack> mobWards,  Set<Entity> nearbyEntities)
     {
         for (ItemStack mobWardStack : mobWards.values()) {
             if(mobWardStack.getTag().contains("filterItem")) {
@@ -395,5 +331,23 @@ public class ItemImplementation {
                 player.level().addFreshEntity(itemEntity);
             }
         }
+    }
+
+    static final String ATTACK_SPEED_TAG = "warrior_ritual_bonus";
+    private static final float ATK_SPEED_BONUS = 1.20f;
+    public AttributeModifier getUpgradedAttackSpeed(Collection<AttributeModifier> attackSpeedModifiers, int total )
+    {
+        double attackSpeed = Attributes.ATTACK_SPEED.getDefaultValue();
+        for (AttributeModifier modifier : attackSpeedModifiers) {
+            if(modifier.getAmount() > 0)
+                attackSpeed += modifier.getAmount();
+        }
+
+        AttributeModifier bonusModifier = new AttributeModifier(
+            UUID.randomUUID(), ATTACK_SPEED_TAG,
+            (attackSpeed * Math.pow(ATK_SPEED_BONUS, total)) - attackSpeed,
+            AttributeModifier.Operation.ADDITION
+        );
+        return bonusModifier;
     }
 }
