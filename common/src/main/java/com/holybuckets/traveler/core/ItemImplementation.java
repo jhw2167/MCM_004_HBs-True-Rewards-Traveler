@@ -336,7 +336,7 @@ public class ItemImplementation {
 
     private static final UUID WARRIOR_RITUAL_MODIFIER_UUID = UUID.fromString("b4e8af8f-6d9e-5f4b-ac3f-2e5d7f9d1c2d");
     private static final String WARRIOR_RITUAL_MODIFIER_NAME = "Warrior Ritual Bonus";
-    private static final float ATK_SPEED_BONUS = 1.20f;
+    private static final float ATK_SPEED_BONUS = 1.15f;
 
     /**
      * Applies warrior ritual attack speed bonus to player
