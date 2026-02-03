@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "hbs_traveler_rewards:iron_block_facade",
+    "hbs_traveler_rewards:gold_block_facade",
+    "hbs_traveler_rewards:diamond_block_facade",
+    "hbs_traveler_rewards:emerald_block_facade",
+    "hbs_traveler_rewards:netherite_block_facade"
+  ]
+}

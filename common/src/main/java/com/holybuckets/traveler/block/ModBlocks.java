@@ -18,6 +18,7 @@ public class ModBlocks {
     public static Block goldBlockFacade;
     public static Block diamondBlockFacade;
     public static Block emeraldBlockFacade;
+    public static Block netheriteBlockFacade;
 
     //public static Block[] scopedSharestones = new SharestoneBlock[DyeColor.values().length];
 
@@ -31,43 +32,33 @@ public class ModBlocks {
         );
 
         blocks.register(
-            () -> {
-                ironBlockFacade = new MetalFacadeBlock(facadeProperties());
-                ironBlockFacade.defaultBlockState().getTags().add(BlockTags.BEACON_BASE_BLOCKS);
-                return ironBlockFacade;
-            },
+            () -> ironBlockFacade = new MetalFacadeBlock(facadeProperties()),
             () -> itemBlock(ironBlockFacade),
             id("iron_block_facade")
         );
 
         blocks.register(
-            () -> {
-                goldBlockFacade = new MetalFacadeBlock(facadeProperties());
-                goldBlockFacade.defaultBlockState().getTags().add(BlockTags.BEACON_BASE_BLOCKS);
-                return goldBlockFacade;
-            },
+            () -> goldBlockFacade = new MetalFacadeBlock(facadeProperties()),
             () -> itemBlock(goldBlockFacade),
             id("gold_block_facade")
         );
 
         blocks.register(
-            () -> {
-                diamondBlockFacade = new MetalFacadeBlock(facadeProperties());
-                diamondBlockFacade.defaultBlockState().getTags().add(BlockTags.BEACON_BASE_BLOCKS);
-                return diamondBlockFacade;
-            },
+            () -> diamondBlockFacade = new MetalFacadeBlock(facadeProperties()),
             () -> itemBlock(diamondBlockFacade),
             id("diamond_block_facade")
         );
 
         blocks.register(
-            () -> {
-                emeraldBlockFacade = new MetalFacadeBlock(facadeProperties());
-                emeraldBlockFacade.defaultBlockState().getTags().add(BlockTags.BEACON_BASE_BLOCKS);
-                return emeraldBlockFacade;
-            },
+            () -> emeraldBlockFacade = new MetalFacadeBlock(facadeProperties()),
             () -> itemBlock(emeraldBlockFacade),
             id("emerald_block_facade")
+        );
+
+        blocks.register(
+            () -> netheriteBlockFacade = new MetalFacadeBlock(facadeProperties()),
+            () -> itemBlock(netheriteBlockFacade),
+            id("netherite_block_facade")
         );
     }
 
