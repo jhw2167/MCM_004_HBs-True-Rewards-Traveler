@@ -4,6 +4,7 @@ import com.holybuckets.traveler.Constants;
 import net.blay09.mods.balm.api.Balm;
 import net.blay09.mods.balm.api.block.BalmBlocks;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
@@ -30,25 +31,41 @@ public class ModBlocks {
         );
 
         blocks.register(
-            () -> ironBlockFacade = new MetalFacadeBlock(facadeProperties()),
+            () -> {
+                ironBlockFacade = new MetalFacadeBlock(facadeProperties());
+                ironBlockFacade.defaultBlockState().getTags().add(BlockTags.BEACON_BASE_BLOCKS);
+                return ironBlockFacade;
+            },
             () -> itemBlock(ironBlockFacade),
             id("iron_block_facade")
         );
 
         blocks.register(
-            () -> goldBlockFacade = new MetalFacadeBlock(facadeProperties()),
+            () -> {
+                goldBlockFacade = new MetalFacadeBlock(facadeProperties());
+                goldBlockFacade.defaultBlockState().getTags().add(BlockTags.BEACON_BASE_BLOCKS);
+                return goldBlockFacade;
+            },
             () -> itemBlock(goldBlockFacade),
             id("gold_block_facade")
         );
 
         blocks.register(
-            () -> diamondBlockFacade = new MetalFacadeBlock(facadeProperties()),
+            () -> {
+                diamondBlockFacade = new MetalFacadeBlock(facadeProperties());
+                diamondBlockFacade.defaultBlockState().getTags().add(BlockTags.BEACON_BASE_BLOCKS);
+                return diamondBlockFacade;
+            },
             () -> itemBlock(diamondBlockFacade),
             id("diamond_block_facade")
         );
 
         blocks.register(
-            () -> emeraldBlockFacade = new MetalFacadeBlock(facadeProperties()),
+            () -> {
+                emeraldBlockFacade = new MetalFacadeBlock(facadeProperties());
+                emeraldBlockFacade.defaultBlockState().getTags().add(BlockTags.BEACON_BASE_BLOCKS);
+                return emeraldBlockFacade;
+            },
             () -> itemBlock(emeraldBlockFacade),
             id("emerald_block_facade")
         );
