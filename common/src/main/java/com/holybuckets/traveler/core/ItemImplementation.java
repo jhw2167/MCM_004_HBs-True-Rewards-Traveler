@@ -53,6 +53,10 @@ public class ItemImplementation {
     private static final double HEALTH_PER_HEART = 2.0;
     public static final int ESCAPE_ROPE_MAX_Y_CAVE_ESCAPE = 16;
 
+    private static final UUID WARRIOR_RITUAL_MODIFIER_UUID = UUID.fromString("b4e8af8f-6d9e-5f4b-ac3f-2e5d7f9g1c2d");
+    private static final String WARRIOR_RITUAL_MODIFIER_NAME = "Warrior Ritual Bonus";
+    private static final float ATK_SPEED_BONUS = 1.20f;
+
     private ItemImplementation() {
         GENERAL_CONFIG = GeneralConfig.getInstance();
     }
@@ -333,21 +337,42 @@ public class ItemImplementation {
         }
     }
 
-    static final String ATTACK_SPEED_TAG = "warrior_ritual_bonus";
-    private static final float ATK_SPEED_BONUS = 1.20f;
-    public AttributeModifier getUpgradedAttackSpeed(Collection<AttributeModifier> attackSpeedModifiers, int total )
+    /**
+     * Applies warrior ritual attack speed bonus to player
+     */
+    void applyWarriorRitualBonus(Player player, int warriorTabletsUsed)
     {
-        double attackSpeed = Attributes.ATTACK_SPEED.getDefaultValue();
-        for (AttributeModifier modifier : attackSpeedModifiers) {
-            if(modifier.getAmount() > 0)
-                attackSpeed += modifier.getAmount();
+        AttributeInstance attackSpeedAttribute = player.getAttribute(Attributes.ATTACK_SPEED);
+        if (attackSpeedAttribute ==  null) {
+            LoggerProject.logError("021001", "Failed to retrieve ATTACK_SPEED attribute for unknown reason, player: " + player.getName().getString());
+            return;
         }
 
-        AttributeModifier bonusModifier = new AttributeModifier(
-            UUID.randomUUID(), ATTACK_SPEED_TAG,
-            (attackSpeed * Math.pow(ATK_SPEED_BONUS, total)) - attackSpeed,
-            AttributeModifier.Operation.ADDITION
-        );
-        return bonusModifier;
+        // Calculate base attack speed from all other modifiers
+        double baseAttackSpeed = Attributes.ATTACK_SPEED.getDefaultValue();
+        Collection<AttributeModifier> attackSpeedModifiers = attackSpeedAttribute.getModifiers();
+        for (AttributeModifier modifier : attackSpeedModifiers) {
+            if (!modifier.getName().equals(WARRIOR_RITUAL_MODIFIER_NAME) && modifier.getAmount() > 0) {
+                baseAttackSpeed += modifier.getAmount();
+            }
+        }
+
+        // Remove existing warrior ritual modifier if present
+        AttributeModifier existingModifier = attackSpeedAttribute.getModifier(WARRIOR_RITUAL_MODIFIER_UUID);
+        if (existingModifier != null) {
+            attackSpeedAttribute.removeModifier(WARRIOR_RITUAL_MODIFIER_UUID);
+        }
+
+        // Calculate new bonus based on warrior tablets used
+        if (warriorTabletsUsed > 0) {
+            double bonusAmount = (baseAttackSpeed * Math.pow(ATK_SPEED_BONUS, warriorTabletsUsed)) - baseAttackSpeed;
+            
+            AttributeModifier newModifier = new AttributeModifier(
+                WARRIOR_RITUAL_MODIFIER_UUID, WARRIOR_RITUAL_MODIFIER_NAME, bonusAmount,
+                AttributeModifier.Operation.ADDITION
+            );
+
+            attackSpeedAttribute.addPermanentModifier(newModifier);
+        }
     }
 }
