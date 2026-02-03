@@ -11,11 +11,12 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 
 public class ModBlockEntities {
     public static DeferredObject<BlockEntityType<TemplateBlockEntity>> templateChest;
+    public static DeferredObject<BlockEntityType<WeatheredBeaconBlockEntity>> weatheredBeacon;
 
     public static void initialize(BalmBlockEntities blockEntities)
     {
         //templateChest =  blockEntities.registerBlockEntity( id("template_chest"), TemplateBlockEntity::new, () -> new Block[]{ModBlocks.templateBlock} );
-
+        weatheredBeacon = blockEntities.registerBlockEntity( id("weathered_beacon"), WeatheredBeaconBlockEntity::new, () -> new Block[]{ModBlocks.weatheredBeacon} );
 
     }
 

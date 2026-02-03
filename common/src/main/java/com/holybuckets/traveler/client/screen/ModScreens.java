@@ -16,5 +16,10 @@ public class ModScreens {
             ModMenus.POTION_POT_MENU::get,
             PotionPotScreen::new
         );
+
+        screens.registerScreen(
+            ModMenus.WEATHERED_BEACON::get,
+            WeatheredBeaconScreen::new
+        );
     }
 }

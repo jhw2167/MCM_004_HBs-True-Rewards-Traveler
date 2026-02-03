@@ -11,6 +11,9 @@ public class ModMenus {
 
     public static DeferredObject<MenuType<MobWardMenu>> MOB_WARD_MENU;
     public static DeferredObject<MenuType<PotionPotMenu>> POTION_POT_MENU;
+    //for weatheed beacon
+    public static DeferredObject<MenuType<WeatheredBeaconMenu>> WEATHERED_BEACON;
+
 
     public static void initialize(BalmMenus menu) {
         MOB_WARD_MENU = menu.registerMenu(
@@ -21,6 +24,11 @@ public class ModMenus {
         POTION_POT_MENU = menu.registerMenu(
             new ResourceLocation(Constants.MOD_ID, "potion_pot"),
             PotionPotMenu::new
+        );
+
+        WEATHERED_BEACON = menu.registerMenu(
+            new ResourceLocation(Constants.MOD_ID, "weathered_beacon"),
+            WeatheredBeaconMenu::new
         );
     }
 }

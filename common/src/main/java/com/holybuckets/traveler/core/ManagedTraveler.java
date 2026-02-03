@@ -200,7 +200,10 @@ public class ManagedTraveler implements IManagedPlayer {
      * Records that the player consumed a Pure Heart
      */
     public void addHealth() {
-        pureHeartsConsumed++;
+        this.setHealth(++pureHeartsConsumed);
+    }
+
+    public void setHealth(int extraHearts) {
         ITEM_IMPLEMENTATION.setHealth(player, pureHeartsConsumed);
     }
 
@@ -426,6 +429,8 @@ public class ManagedTraveler implements IManagedPlayer {
         if (player instanceof ServerPlayer serverPlayer) {
             restoreSoulboundItems();
         }
+        this.lastWarriorRitual = -1;
+        this.setHealth(this.pureHeartsConsumed);
     }
 
     @Override

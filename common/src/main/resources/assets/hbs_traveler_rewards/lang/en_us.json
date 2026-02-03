@@ -16,14 +16,14 @@
   "item.hbs_traveler_rewards.diamond_shard.desc": "Piece of a diamond that can be used to repair tools or armor but not to create new equipment",
   
   "item.hbs_traveler_rewards.savior_orb": "Savior Orb",
-  "item.hbs_traveler_rewards.savior_orb.desc": "When kept in your inventory it will spawn an entity in the world that saves your items, set a waypoint to your death location and will try to reunite with you when nearby",
+  "item.hbs_traveler_rewards.savior_orb.desc": "On death the Orb saves your items in it like a chest. It also sets a waypoint to its location and will try to reunite with you when nearby",
   
   "item.hbs_traveler_rewards.pure_heart": "Pure Heart",
   "item.hbs_traveler_rewards.pure_heart.desc": "Grants an extra heart of health",
   "item.hbs_traveler_rewards.pure_heart.success": "Extra heart granted!",
   
   "item.hbs_traveler_rewards.soulbound_ritual_tablet": "Soulbound Ritual Tablet",
-  "item.hbs_traveler_rewards.soulbound_ritual_tablet.desc": "Right-click to make the current Item Slot 'Soulbound'. Right clicking a slot which is already Soulbound will make an internal inventory slot soulbound.",
+  "item.hbs_traveler_rewards.soulbound_ritual_tablet.desc": "A magic ritual granted to the Void Worshippers. Right-click to make the current Item Slot 'Soulbound'. Right clicking a slot which is already Soulbound will make an internal inventory slot soulbound.",
   "item.hbs_traveler_rewards.soulbound_ritual_tablet.success": "Slot %s is now soulbound!",
   "item.hbs_traveler_rewards.soulbound_ritual_tablet.already_bound": "This slot is already soulbound",
   
@@ -93,5 +93,14 @@
   "item.hbs_traveler_rewards.potion_pot": "Potion Pot",
   "item.hbs_traveler_rewards.potion_pot.desc": "Portable brewing stand with infinite awkward potions",
   "container.hbs_traveler_rewards.potion_pot": "Potion Pot",
-  "gui.hbs_traveler_rewards.potion_pot.locked": "Locked: Infinite Awkward Potion"
+  "gui.hbs_traveler_rewards.potion_pot.locked": "Locked: Infinite Awkward Potion",
+
+  "block.hbs_traveler_rewards.weathered_beacon": "Weathered Beacon",
+  "block.hbs_traveler_rewards.iron_block_facade": "Iron Block Facade",
+  "block.hbs_traveler_rewards.gold_block_facade": "Gold Block Facade",
+  "block.hbs_traveler_rewards.diamond_block_facade": "Diamond Block Facade",
+  "block.hbs_traveler_rewards.emerald_block_facade": "Emerald Block Facade",
+  "container.hbs_traveler_rewards.weathered_beacon": "Weathered Beacon"
+
+
 }

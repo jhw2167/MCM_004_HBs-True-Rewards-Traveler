@@ -12,18 +12,46 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 public class ModBlocks {
 
     public static Block templateBlock;
+    public static Block weatheredBeacon;
+    public static Block ironBlockFacade;
+    public static Block goldBlockFacade;
+    public static Block diamondBlockFacade;
+    public static Block emeraldBlockFacade;
+
     //public static Block[] scopedSharestones = new SharestoneBlock[DyeColor.values().length];
 
     public static void initialize(BalmBlocks blocks) {
         //blocks.register(() -> templateBlock = new EmptyBlock(defaultProperties()), () -> itemBlock(templateBlock), id("template_block"));
 
-        /*
-        DyeColor[] colors = DyeColor.values();
-        for (DyeColor color : colors) {
-            blocks.register(() -> scopedSharestones[color.ordinal()] = new SharestoneBlock(defaultProperties(), color), () -> itemBlock(scopedSharestones[color.ordinal()]), id(color.getSerializedName() + "_sharestone"));
-        }
-        */
+        blocks.register(
+            () -> weatheredBeacon = new WeatheredBeaconBlock(weatheredBeaconProperties()),
+            () -> itemBlock(weatheredBeacon),
+            id("weathered_beacon")
+        );
 
+        blocks.register(
+            () -> ironBlockFacade = new MetalFacadeBlock(facadeProperties()),
+            () -> itemBlock(ironBlockFacade),
+            id("iron_block_facade")
+        );
+
+        blocks.register(
+            () -> goldBlockFacade = new MetalFacadeBlock(facadeProperties()),
+            () -> itemBlock(goldBlockFacade),
+            id("gold_block_facade")
+        );
+
+        blocks.register(
+            () -> diamondBlockFacade = new MetalFacadeBlock(facadeProperties()),
+            () -> itemBlock(diamondBlockFacade),
+            id("diamond_block_facade")
+        );
+
+        blocks.register(
+            () -> emeraldBlockFacade = new MetalFacadeBlock(facadeProperties()),
+            () -> itemBlock(emeraldBlockFacade),
+            id("emerald_block_facade")
+        );
     }
 
     private static BlockItem itemBlock(Block block) {
@@ -36,5 +64,21 @@ public class ModBlocks {
 
     private static BlockBehaviour.Properties defaultProperties() {
         return Balm.getBlocks().blockProperties().sound(SoundType.STONE).strength(5f, 2000f);
+    }
+
+    private static BlockBehaviour.Properties weatheredBeaconProperties() {
+        return Balm.getBlocks().blockProperties()
+            .sound(SoundType.METAL)
+            .strength(3.0f)
+            .lightLevel(state -> 15)
+            .noOcclusion()
+            .isRedstoneConductor((state, level, pos) -> false);
+    }
+
+    private static BlockBehaviour.Properties facadeProperties() {
+        return Balm.getBlocks().blockProperties()
+            .sound(SoundType.METAL)
+            .strength(5.0f, 6.0f)
+            .requiresCorrectToolForDrops();
     }
 }

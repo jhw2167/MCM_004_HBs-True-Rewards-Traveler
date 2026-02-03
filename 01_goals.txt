@@ -2,3 +2,106 @@ Requirements
 ---
 
 
+1. Test anvil behavior
+---
+
+2. Add knockback resistance to warrior tablet
+---
+
+3. Add reset method and store player data in save file
+---
+
+4. Add setValue() functions for tablet, soulbound slot
+---
+
+5. Add Anvil warning when enchantment cannot be applied
+---
+	- hourglass bracing and whetstone
+	- At level 5 cutoff
+	- At level 10 cutoff
+
+6. Test lasting reset
+---
+
+	- Lasting should reset when item has lasting added to it
+
+7. Add Golden Treat item
+---
+
+	- Golden treat instantly makes a dog your friend etc.
+	- Dolphin, ocelot
+	- Heals them instantly, gives gold hearts
+
+8. Add weathered beacon
+---
+
+	- Start true beacon default range at 32, Double each level
+
+	- Start weathered beacon ranges: 32,32,64,64
+	- Weathered beacon requires 2 levels to emit level 1 effects and 4 levels to emit level 2 effects
+	- 
+
+
+9. Add beacon facade blocks
+---
+
+11. Add concept of player level
+---
+
+12. Add allay Carriage
+---
+
+13.
+---
+
+14.
+---
+
+15.
+---
+
+16.
+---
+
+
+17.
+---
+
+18.
+---
+
+19.
+---
+
+20.
+---
+
+21.
+---
+
+22.
+---
+
+23.
+---
+
+24.
+---
+
+5.
+---
+
+6.
+---
+
+
+7.
+---
+
+8.
+---
+
+9.
+---
+
+---
