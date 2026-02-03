@@ -334,38 +334,88 @@ public class ItemImplementation {
         }
     }
 
-    private static final UUID WARRIOR_RITUAL_MODIFIER_UUID = UUID.fromString("b4e8af8f-6d9e-5f4b-ac3f-2e5d7f9d1c2d");
-    private static final String WARRIOR_RITUAL_MODIFIER_NAME = "Warrior Ritual Bonus";
+    private static final UUID WARRIOR_RITUAL_ATTACK_SPEED_MODIFIER_UUID = UUID.fromString("b4e8af8f-6d9e-5f4b-ac3f-2e5d7f9d1c2d");
+    private static final String WARRIOR_RITUAL_ATTACK_SPEED_MODIFIER_NAME = "Warrior Ritual Attack Speed Bonus";
+    private static final UUID WARRIOR_RITUAL_KNOCKBACK_RESIST_MODIFIER_UUID = UUID.fromString("c5f9bg9g-7e0f-6g5c-bd4g-3f6e8g0e2d3e");
+    private static final String WARRIOR_RITUAL_KNOCKBACK_RESIST_MODIFIER_NAME = "Warrior Ritual Knockback Resistance Bonus";
     private static final float ATK_SPEED_BONUS = 1.15f;
+    private static final double KNOCKBACK_RESIST_PER_TABLET = 0.05;
 
     /**
-     * Applies warrior ritual attack speed bonus to player
+     * Sets the player's attack speed to the specified value using a permanent modifier
+     */
+    private void setAttackSpeed(Player player, double attackSpeedToSet) {
+        AttributeInstance attackSpeedAttribute = player.getAttribute(Attributes.ATTACK_SPEED);
+        if (attackSpeedAttribute == null) return;
+
+        // Remove existing warrior ritual modifier if present
+        AttributeModifier existingModifier = attackSpeedAttribute.getModifier(WARRIOR_RITUAL_ATTACK_SPEED_MODIFIER_UUID);
+        if (existingModifier != null) {
+            attackSpeedAttribute.removeModifier(WARRIOR_RITUAL_ATTACK_SPEED_MODIFIER_UUID);
+        }
+
+        // Calculate the bonus needed to reach the target attack speed
+        double baseAttackSpeed = Attributes.ATTACK_SPEED.getDefaultValue();
+        double bonusAmount = attackSpeedToSet - baseAttackSpeed;
+
+        if (bonusAmount > 0) {
+            AttributeModifier newModifier = new AttributeModifier(
+                WARRIOR_RITUAL_ATTACK_SPEED_MODIFIER_UUID, WARRIOR_RITUAL_ATTACK_SPEED_MODIFIER_NAME, bonusAmount,
+                AttributeModifier.Operation.ADDITION
+            );
+            attackSpeedAttribute.addTransientModifier(newModifier);
+        }
+    }
+
+    /**
+     * Sets the player's knockback resistance to the specified value using a permanent modifier
+     */
+    private void setKnockbackResist(Player player, double knockbackResistToSet) {
+        AttributeInstance knockbackResistAttribute = player.getAttribute(Attributes.KNOCKBACK_RESISTANCE);
+        if (knockbackResistAttribute == null) return;
+
+        // Remove existing warrior ritual modifier if present
+        AttributeModifier existingModifier = knockbackResistAttribute.getModifier(WARRIOR_RITUAL_KNOCKBACK_RESIST_MODIFIER_UUID);
+        if (existingModifier != null) {
+            knockbackResistAttribute.removeModifier(WARRIOR_RITUAL_KNOCKBACK_RESIST_MODIFIER_UUID);
+        }
+
+        // Calculate the bonus needed to reach the target knockback resistance
+        double baseKnockbackResist = Attributes.KNOCKBACK_RESISTANCE.getDefaultValue();
+        double bonusAmount = knockbackResistToSet - baseKnockbackResist;
+
+        if (bonusAmount > 0) {
+            AttributeModifier newModifier = new AttributeModifier(
+                WARRIOR_RITUAL_KNOCKBACK_RESIST_MODIFIER_UUID, WARRIOR_RITUAL_KNOCKBACK_RESIST_MODIFIER_NAME, bonusAmount,
+                AttributeModifier.Operation.ADDITION
+            );
+            knockbackResistAttribute.addTransientModifier(newModifier);
+        }
+    }
+
+    /**
+     * Applies warrior ritual attack speed and knockback resistance bonuses to player
      */
     void applyWarriorRitualBonus(Player player, int warriorTabletsUsed)
     {
         AttributeInstance attackSpeedAttribute = player.getAttribute(Attributes.ATTACK_SPEED);
-        if (attackSpeedAttribute ==  null) return;
+        if (attackSpeedAttribute == null) return;
 
-        // Calculate base attack speed from all other modifiers
+        // Calculate base attack speed from all other modifiers (excluding our warrior ritual modifier)
         double baseAttackSpeed = Attributes.ATTACK_SPEED.getDefaultValue();
         Collection<AttributeModifier> attackSpeedModifiers = attackSpeedAttribute.getModifiers();
         for (AttributeModifier modifier : attackSpeedModifiers) {
-            if (!modifier.getName().equals(WARRIOR_RITUAL_MODIFIER_NAME) && modifier.getAmount() > 0) {
+            if (!modifier.getName().equals(WARRIOR_RITUAL_ATTACK_SPEED_MODIFIER_NAME) && modifier.getAmount() > 0) {
                 baseAttackSpeed += modifier.getAmount();
             }
         }
 
-        // Remove existing warrior ritual modifier if present
-        AttributeModifier existingModifier = attackSpeedAttribute.getModifier(WARRIOR_RITUAL_MODIFIER_UUID);
-        if (existingModifier != null) {
-            attackSpeedAttribute.removeModifier(WARRIOR_RITUAL_MODIFIER_UUID);
-        }
+        // Calculate new attack speed with warrior ritual bonus
+        double newAttackSpeed = baseAttackSpeed * Math.pow(ATK_SPEED_BONUS, warriorTabletsUsed);
+        setAttackSpeed(player, newAttackSpeed);
 
-        double bonusAmount = (baseAttackSpeed * Math.pow(ATK_SPEED_BONUS, warriorTabletsUsed)) - baseAttackSpeed;
-        AttributeModifier newModifier = new AttributeModifier(
-            WARRIOR_RITUAL_MODIFIER_UUID, WARRIOR_RITUAL_MODIFIER_NAME, bonusAmount,
-            AttributeModifier.Operation.ADDITION
-        );
-        attackSpeedAttribute.addTransientModifier(newModifier);
+        // Calculate and set knockback resistance
+        double knockbackResistance = KNOCKBACK_RESIST_PER_TABLET * warriorTabletsUsed;
+        setKnockbackResist(player, knockbackResistance);
     }
 }
