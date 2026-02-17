@@ -1,13 +1,11 @@
 package com.holybuckets.traveler.item;
 
+import com.holybuckets.traveler.core.ItemImplementation;
 import net.minecraft.world.item.ItemStack;
 
 /**
  * Empty Totem - A container that can be filled with items like Ender Eyes or Biome Essence
  * Can wrap an Ender Eye so it doesn't break, or wrap items to halt their effects
- * Art Inspiration: Same style as vanilla Minecraft totem of undying, but design implies something can be placed inside
- * 
- * Note: The actual preservation/halting logic will be handled by event listeners
  */
 public class EmptyTotemItem extends InventoryHolderItem {
     
@@ -19,13 +17,23 @@ public class EmptyTotemItem extends InventoryHolderItem {
      * Gets the item stored/wrapped inside the totem
      */
     public ItemStack getWrappedItem(ItemStack totemStack) {
-        return getStoredItem(totemStack, 0);
+        ItemStack item = getStoredItem(totemStack, 0);
+        final ItemImplementation IMPL = ItemImplementation.getInstance();
+        if(IMPL.getLastingTimeRemaining(item) != null)
+            IMPL.setLastingExpiration(item, IMPL.calculateLastingExpiration(totemStack));
+        return item;
     }
     
     /**
      * Sets the item to be stored/wrapped inside the totem
      */
     public void setWrappedItem(ItemStack totemStack, ItemStack itemToWrap) {
+        final ItemImplementation IMPL = ItemImplementation.getInstance();
+        Long lastingExpirationTick = IMPL.getLastingExpiration(itemToWrap);
+        if(lastingExpirationTick != null) {
+            IMPL.removeLastingMetaData(itemToWrap);
+            IMPL.setLastingTimeRemaining(itemToWrap, lastingExpirationTick);
+        }
         setStoredItem(totemStack, 0, itemToWrap);
     }
     

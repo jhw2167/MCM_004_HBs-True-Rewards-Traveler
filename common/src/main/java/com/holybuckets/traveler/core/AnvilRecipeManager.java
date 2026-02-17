@@ -262,7 +262,7 @@ public class AnvilRecipeManager {
         enchantments.put(ModEnchantments.LASTING.get(), newLasting);
         EnchantmentHelper.setEnchantments(enchantments, result);
 
-        ItemImplementation.getInstance().removeLastingExpiration(result);
+        ItemImplementation.getInstance().removeLastingMetaData(result);
         event.setResultItem(result);
         event.setCost(1);
     }

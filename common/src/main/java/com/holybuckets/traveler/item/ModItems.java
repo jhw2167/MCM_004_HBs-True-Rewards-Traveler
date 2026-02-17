@@ -1,13 +1,13 @@
 package com.holybuckets.traveler.item;
 
+import com.holybuckets.foundation.event.EventRegistrar;
+import com.holybuckets.foundation.item.SimpleRewardItem;
 import net.blay09.mods.balm.api.DeferredObject;
+import net.blay09.mods.balm.api.event.server.ServerStartingEvent;
 import net.blay09.mods.balm.api.item.BalmItems;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-
-import javax.imageio.spi.IIORegistry;
 
 import static com.holybuckets.traveler.Constants.MOD_ID;
 
@@ -21,7 +21,6 @@ public class ModItems {
     public static DeferredObject<CreativeModeTab> creativeModeTab;
 
     // Simple Reward Items (basic items with no special behavior)
-    public static SimpleRewardItem enchantedEssence;
     public static SimpleRewardItem saviorOrb;
 
     public static SimpleRewardItem ironBloom;
@@ -30,12 +29,14 @@ public class ModItems {
     public static SimpleRewardItem netheriteBloom;
 
     // Interactive Reward Items (right-click interactions)
+    public static SimpleRewardItem quarterHeart;
+    public static SimpleRewardItem halfHeart;
     public static PureHeartItem pureHeart;
     public static SoulboundRitualTabletItem soulboundRitualTablet;
     public static FabricationRitualTabletItem fabricationRitualTablet;
     public static WarriorRitualTabletItem warriorRitualTablet;
     public static PotionPotItem potionPot;
-    public static EscapeRopeItem escapeRope;
+    public static EscapeCharmItem escapeCharm;
 
     // Anvil Enchantment Items (anvil-only enhancements)
     // Tier 1 (Basic)
@@ -67,7 +68,6 @@ public class ModItems {
         );
 
         // Register Simple Reward Items
-        items.registerItem(() -> enchantedEssence = new SimpleRewardItem("enchanted_essence"), id("enchanted_essence"));
         items.registerItem(() -> saviorOrb = new SimpleRewardItem("savior_orb"), id("savior_orb"));
 
         //
@@ -78,12 +78,15 @@ public class ModItems {
 
 
         // Register Interactive Reward Items
+        //add SimpleRewardItem: quarter_heart, and half_heart
+        items.registerItem(() -> quarterHeart = new SimpleRewardItem("quarter_heart"), id("quarter_heart"));
+        items.registerItem(() -> halfHeart = new SimpleRewardItem("half_heart"), id("half_heart"));
         items.registerItem(() -> pureHeart = new PureHeartItem(), id("pure_heart"));
         items.registerItem(() -> soulboundRitualTablet = new SoulboundRitualTabletItem(), id("soulbound_ritual_tablet"));
         items.registerItem(() -> fabricationRitualTablet = new FabricationRitualTabletItem(), id("fabrication_ritual_tablet"));
         items.registerItem(() -> warriorRitualTablet = new WarriorRitualTabletItem(), id("warrior_ritual_tablet"));
         items.registerItem(() -> potionPot = new PotionPotItem(), id("potion_pot"));
-        items.registerItem(() -> escapeRope = new EscapeRopeItem(), id("escape_rope"));
+        items.registerItem(() -> escapeCharm = new EscapeCharmItem(), id("escape_charm"));
 
         // Register Anvil Enchantment Items - Tier 1
         items.registerItem(() -> whetstone = new AnvilEnchantmentItem(
@@ -126,6 +129,15 @@ public class ModItems {
         // Register Inventory Holder Items
         items.registerItem(() -> mobWard = new MobWardItem(), id("mob_ward"));
         items.registerItem(() -> emptyTotem = new EmptyTotemItem(), id("empty_totem"));
+    }
+
+    public static void init(EventRegistrar reg) {
+        reg.registerOnBeforeServerStarted(ModItems::onBeforeServerStarted);
+    }
+
+    private static void onBeforeServerStarted(ServerStartingEvent event) {
+        ItemStack stack = com.holybuckets.foundation.item.ModItems.enchantedEssence.getDefaultInstance();
+        creativeModeTab.get().getDisplayItems().add(stack);
     }
 
     /**

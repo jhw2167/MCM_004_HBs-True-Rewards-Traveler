@@ -17,7 +17,8 @@
   
   "item.hbs_traveler_rewards.savior_orb": "Savior Orb",
   "item.hbs_traveler_rewards.savior_orb.desc": "On death the Orb saves your items in it like a chest. It also sets a waypoint to its location and will try to reunite with you when nearby",
-  
+
+  "item.hbs_traveler_rewards.half_heart": "Pure Heart",
   "item.hbs_traveler_rewards.pure_heart": "Pure Heart",
   "item.hbs_traveler_rewards.pure_heart.desc": "Grants an extra heart of health",
   "item.hbs_traveler_rewards.pure_heart.success": "Extra heart granted!",
@@ -40,13 +41,13 @@
   "item.hbs_traveler_rewards.potion_pot.desc": "Cooks potion instantly, breaks on use. Add ingredients to the Pot inventory and then right click on water to brew.",
   "item.hbs_traveler_rewards.potion_pot.brewing": "Brewing...",
   
-  "item.hbs_traveler_rewards.escape_rope": "Escape Rope",
-  "item.hbs_traveler_rewards.escape_rope.desc": "Helps escape from a structure or cave system but only works at full health",
-  "item.hbs_traveler_rewards.escape_rope.success": "Escaped successfully!",
-  "item.hbs_traveler_rewards.escape_rope.not_full_health": "You must be at full health to use the Escape Rope",
-  "item.hbs_traveler_rewards.escape_rope.no_safe_location": "Could not find a safe location",
-  "item.hbs_traveler_rewards.escape_rope.failed": "Unable to escape from this location",
-  "item.hbs_traveler_rewards.escape_rope.not_in_structure": "You must be inside a structure or deep cave to escape",
+  "item.hbs_traveler_rewards.escape_charm": "Escape Charm",
+  "item.hbs_traveler_rewards.escape_charm.desc": "Helps escape from a structure or cave system but only works at full health",
+  "item.hbs_traveler_rewards.escape_charm.success": "Escaped successfully!",
+  "item.hbs_traveler_rewards.escape_charm.not_full_health": "You must be at full health to use the Escape Rope",
+  "item.hbs_traveler_rewards.escape_charm.no_safe_location": "Could not find a safe location",
+  "item.hbs_traveler_rewards.escape_charm.failed": "Unable to escape from this location",
+  "item.hbs_traveler_rewards.escape_charm.not_in_structure": "You must be inside a structure or deep cave to escape",
 
   "item.hbs_traveler_rewards.anvil_item.relic_max_level": "This artifact cannot enchant past level %s",
   "item.hbs_traveler_rewards.anvil_item.item_max_level": "This item cannot be enchanted past level %s",
@@ -73,7 +74,7 @@
   "item.hbs_traveler_rewards.mob_ward.desc": "Right click to add items to the ward. Any mob that drops this item will be warded away",
   
   "item.hbs_traveler_rewards.empty_totem": "Empty Totem",
-  "item.hbs_traveler_rewards.empty_totem.desc": "Preserves fragile items in its single inventory slot. Items with the Lasting curse will not decay in a totem",
+  "item.hbs_traveler_rewards.empty_totem.desc": "Preserves fragile items in its single inventory slot. Items cursed with Lasting will not decay while stored in a totem",
   
   "item.hbs_traveler_rewards.contains": "Contains: %s",
   "item.hbs_traveler_rewards.empty": "Empty",
@@ -96,11 +97,13 @@
   "gui.hbs_traveler_rewards.potion_pot.locked": "Locked: Infinite Awkward Potion",
 
   "block.hbs_traveler_rewards.weathered_beacon": "Weathered Beacon",
-  "block.hbs_traveler_rewards.iron_block_facade": "Iron Block Facade",
-  "block.hbs_traveler_rewards.gold_block_facade": "Gold Block Facade",
-  "block.hbs_traveler_rewards.diamond_block_facade": "Diamond Block Facade",
-  "block.hbs_traveler_rewards.emerald_block_facade": "Emerald Block Facade",
-  "container.hbs_traveler_rewards.weathered_beacon": "Weathered Beacon"
+  "container.hbs_traveler_rewards.weathered_beacon": "Weathered Beacon",
+
+  "block.hbs_traveler_rewards.iron_facade_block": "Iron Facade Block",
+  "block.hbs_traveler_rewards.gold_facade_block": "Gold Facade Block",
+  "block.hbs_traveler_rewards.diamond_facade_block": "Diamond Facade Block",
+  "block.hbs_traveler_rewards.emerald_facade_block": "Emerald Facade Block",
+  "block.hbs_traveler_rewards.netherite_facade_block": "Netherite Facade Block"
 
 
 }

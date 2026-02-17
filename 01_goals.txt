@@ -5,24 +5,25 @@ Requirements
 1. Test anvil behavior
 ---
 
-2. Add knockback resistance to warrior tablet
+2. Add knockback resistance to warrior tablet				XXX
 ---
 
 3. Add reset method and store player data in save file
 ---
 
-4. Add setValue() functions for tablet, soulbound slot
+4. Add setValue() functions for tablet, soulbound slot			XXX
 ---
 
-5. Add Anvil warning when enchantment cannot be applied
+5. Add Anvil warning when enchantment cannot be applied			XXX
 ---
 	- hourglass bracing and whetstone
 	- At level 5 cutoff
 	- At level 10 cutoff
 
-6. Test lasting reset
----
+	- ADDED AS WARNING MESSAGE IN RED
 
+6. Test lasting reset							XXX
+---
 	- Lasting should reset when item has lasting added to it
 
 7. Add Golden Treat item
@@ -32,36 +33,91 @@ Requirements
 	- Dolphin, ocelot
 	- Heals them instantly, gives gold hearts
 
-8. Add weathered beacon
+8. Add weathered beacon								XXX
 ---
 
 	- Start true beacon default range at 32, Double each level
 
 	- Start weathered beacon ranges: 32,32,64,64
 	- Weathered beacon requires 2 levels to emit level 1 effects and 4 levels to emit level 2 effects
-	- 
+
+	- add Night Vision Effect
+	- add Fire Resistence Effect
+	- add Builders Flight Effect
 
 
-9. Add beacon facade blocks
+9. Add beacon facade blocks							XXX
 ---
 
-11. Add concept of player level
+	- add textures for beacon facade block
+
+11. Add concept of player level							XXX
 ---
+
+	Player Level =
+	- Soulbound Slot
+	- Pure Hearts
+	- Warrior Ritual
+
+	- Armor
+	- Attack Damage
+
 
 12. Add allay Carriage
 ---
 
-13.
+	- Get Block Bench Model
+	- Get Block Bench Anims
+	- 
+
+13. HB's Foundations Update
 ---
 
-14.
+	- Anvil Error Message	
+	- Moving Waypoint
+	- 
+
+14. Savior Orb
 ---
 
-15.
+	- Add Savior Orb Block Bench Model
+	- Create entity
+	- 
+
+	- add Savior orb logic
+	- On player death, high priority
+		- Process all items in inventory
+		- Soulbound slot -> skip
+		- Soulbound item -> skip
+		- totem of undying -> skip
+
+	- Save player items to compound tag, and give tag info to Entity
+	- set saviorItems = null when saviorItems are returned OR when entity breaks
+
+	- Entity saves player items to nbt
+	- Entiy loads IntObjectHashmpa<slot, itemStack> from nbt data if necessary
+
+15. Builders Flight Effect
 ---
 
-16.
+	- Builders Flight
+	- Creative mode flight
+	- Certain distance from base
+	- Stops if you take damage
+	- Only used at the beginning of the day
+
+	- Must sleep the night before
+
+
+16. Add Enchanted Essence Cauldron Support
 ---
+
+	- Need a biomeManager for local biomes
+
+	- onTick operation
+	- If in a cauldron
+		- If it has specific essence
+		- 
 
 
 17.

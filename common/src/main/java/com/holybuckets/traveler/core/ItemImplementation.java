@@ -1,6 +1,7 @@
 package com.holybuckets.traveler.core;
 
 import com.holybuckets.foundation.GeneralConfig;
+import com.holybuckets.foundation.networking.SimpleStringMessage;
 import com.holybuckets.foundation.structure.StructureAPI;
 import com.holybuckets.traveler.LoggerProject;
 import com.holybuckets.traveler.TravelerRewardsMain;
@@ -107,9 +108,9 @@ public class ItemImplementation {
         return false;
     }
 
-    public static final int ESCAPE_ROPE_MAX_Y_CAVE_ESCAPE = 16;
+    public static final int escape_charm_MAX_Y_CAVE_ESCAPE = 16;
     boolean isInDeepCaves(Player player) {
-        return (player.blockPosition().getY() < ESCAPE_ROPE_MAX_Y_CAVE_ESCAPE);
+        return (player.blockPosition().getY() < escape_charm_MAX_Y_CAVE_ESCAPE);
     }
 
     /**
@@ -159,7 +160,7 @@ public class ItemImplementation {
     void checkLastingEnchantments(ServerPlayer player, IntObjectMap<ItemStack> lastingItems)
     {
         Inventory inventory = player.getInventory();
-        long currentTick = GENERAL_CONFIG.getTotalTickCount();
+        long currentTick = currentTicks();
 
         List<Integer> slotsToRemove = new ArrayList<>();
         for (Integer i : lastingItems.keySet())
@@ -174,7 +175,7 @@ public class ItemImplementation {
                 Long expirationTick = getLastingExpiration(stack);
                 if (expirationTick == null)
                 {
-                    expirationTick = calculateLastingExpiration(stack, currentTick);
+                    expirationTick = calculateLastingExpiration(stack);
                     setLastingExpiration(stack, expirationTick);
                     LoggerProject.logDebug("020003",
                         String.format("Player %s has new Lasting item: %s, expires at tick %d",
@@ -191,7 +192,7 @@ public class ItemImplementation {
                             currentTick, expirationTick));
                 }
             } else {
-                removeLastingExpiration(stack);
+                removeLastingMetaData(stack);
             }
         }
 
@@ -199,7 +200,7 @@ public class ItemImplementation {
         for (int slot : slotsToRemove)
         {
             ItemStack expiredStack = inventory.getItem(slot);
-            removeLastingExpiration(expiredStack);
+            removeLastingMetaData(expiredStack);
             inventory.setItem(slot, ItemStack.EMPTY);
 
             // Optional: Notify player
@@ -210,12 +211,13 @@ public class ItemImplementation {
         }
     }
 
-    private long calculateLastingExpiration(ItemStack stack, long currentTick)
+    public long calculateLastingExpiration(ItemStack stack)
     {
-        if (stack.hasTag() && stack.getTag().contains("LastingDuration")) {
-            long customDuration = stack.getTag().getLong("LastingDuration");
+        long currentTick = currentTicks();
+        Long customDuration = getLastingTimeRemaining(stack);
+        if(customDuration != null)
             return currentTick + customDuration;
-        }
+
         int lastingLevel = EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.LASTING.get(), stack);
         if(lastingLevel == 0) {
             stack.enchant(ModEnchantments.LASTING.get(), 1);
@@ -240,10 +242,34 @@ public class ItemImplementation {
         stack.getTag().putLong("LastingExpiration", expirationTick);
     }
 
-    public void removeLastingExpiration(ItemStack stack) {
+    public void removeLastingMetaData(ItemStack stack) {
         if (stack.hasTag() && stack.getTag().contains("LastingExpiration")) {
             stack.getTag().remove("LastingExpiration");
         }
+        //remove LastingDuration
+        if (stack.hasTag() && stack.getTag().contains("LastingDuration")) {
+            stack.getTag().remove("LastingDuration");
+        }
+    }
+
+    @Nullable
+    public Long getLastingTimeRemaining(ItemStack stack) {
+        if (stack.hasTag() && stack.getTag().contains("LastingDuration")) {
+            return stack.getTag().getLong("LastingDuration");
+        }
+        return null;
+    }
+
+    public void setLastingTimeRemaining(ItemStack stack, long expiringTick) {
+        if (!stack.hasTag()) {
+            stack.setTag(new CompoundTag());
+        }
+        long lastingDuration = expiringTick - currentTicks();
+        stack.getTag().putLong("LastingDuration", Math.max(0, lastingDuration));
+    }
+
+    private long currentTicks() {
+        return GENERAL_CONFIG.getTotalTickCountWithSleep(GeneralConfig.OVERWORLD);
     }
 
 
@@ -413,5 +439,11 @@ public class ItemImplementation {
         // Calculate and set knockback resistance
         double knockbackResistance = KNOCKBACK_RESIST_PER_TABLET * warriorTabletsUsed;
         setKnockbackResist(player, knockbackResistance);
+    }
+
+
+    //** Events
+    private void onSimpleMessageBeaconUpdate(SimpleStringMessage m) {
+        // Handle incoming simple string messages here
     }
 }

@@ -2,9 +2,10 @@
 package com.holybuckets.traveler.client.screen;
 
 import com.google.common.collect.Lists;
+import com.holybuckets.foundation.networking.SimpleStringMessage;
 import com.holybuckets.traveler.Constants;
+import com.holybuckets.traveler.block.be.WeatheredBeaconBlockEntity;
 import com.holybuckets.traveler.menu.WeatheredBeaconMenu;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
@@ -12,9 +13,8 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.BeaconScreen;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -27,14 +27,11 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-@OnlyIn(Dist.CLIENT)
 public class WeatheredBeaconScreen extends AbstractContainerScreen<WeatheredBeaconMenu> {
     private static final ResourceLocation WEATHERED_BEACON_LOCATION =
         new ResourceLocation(Constants.MOD_ID, "textures/gui/container/weathered_beacon.png");
@@ -116,7 +113,7 @@ public class WeatheredBeaconScreen extends AbstractContainerScreen<WeatheredBeac
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         graphics.drawCenteredString(this.font, PRIMARY_EFFECT_LABEL, 62, 10, 14737632);
-        graphics.drawCenteredString(this.font, CommonComponents.GUI_DONE, 169, 17, 14737632);
+        //graphics.drawCenteredString(this.font, CommonComponents.GUI_DONE, 169, 17, 14737632);
     }
 
     @Override
@@ -144,13 +141,11 @@ public class WeatheredBeaconScreen extends AbstractContainerScreen<WeatheredBeac
     }
 
     // Interface for button status updates
-    @OnlyIn(Dist.CLIENT)
     private interface WeatheredBeaconButton {
         void updateStatus(int pyramidLevel);
     }
 
     // Base button class
-    @OnlyIn(Dist.CLIENT)
     private abstract static class WeatheredBeaconScreenButton extends AbstractButton implements WeatheredBeaconButton {
         private boolean selected;
 
@@ -195,7 +190,6 @@ public class WeatheredBeaconScreen extends AbstractContainerScreen<WeatheredBeac
     }
 
     // Confirm button
-    @OnlyIn(Dist.CLIENT)
     private class ConfirmButton extends WeatheredBeaconScreenButton {
         public ConfirmButton(int x, int y) {
             super(x, y, CommonComponents.GUI_DONE);
@@ -221,7 +215,6 @@ public class WeatheredBeaconScreen extends AbstractContainerScreen<WeatheredBeac
     }
 
     // Effect selection button
-    @OnlyIn(Dist.CLIENT)
     private class EffectButton extends WeatheredBeaconScreenButton {
         private final int tier;
         private final MobEffect effect;

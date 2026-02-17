@@ -34,31 +34,31 @@ public class ModBlocks {
         blocks.register(
             () -> ironBlockFacade = new MetalFacadeBlock(facadeProperties()),
             () -> itemBlock(ironBlockFacade),
-            id("iron_block_facade")
+            id("iron_facade_block")
         );
 
         blocks.register(
             () -> goldBlockFacade = new MetalFacadeBlock(facadeProperties()),
             () -> itemBlock(goldBlockFacade),
-            id("gold_block_facade")
+            id("gold_facade_block")
         );
 
         blocks.register(
             () -> diamondBlockFacade = new MetalFacadeBlock(facadeProperties()),
             () -> itemBlock(diamondBlockFacade),
-            id("diamond_block_facade")
+            id("diamond_facade_block")
         );
 
         blocks.register(
             () -> emeraldBlockFacade = new MetalFacadeBlock(facadeProperties()),
             () -> itemBlock(emeraldBlockFacade),
-            id("emerald_block_facade")
+            id("emerald_facade_block")
         );
 
         blocks.register(
             () -> netheriteBlockFacade = new MetalFacadeBlock(facadeProperties()),
             () -> itemBlock(netheriteBlockFacade),
-            id("netherite_block_facade")
+            id("netherite_facade_block")
         );
     }
 

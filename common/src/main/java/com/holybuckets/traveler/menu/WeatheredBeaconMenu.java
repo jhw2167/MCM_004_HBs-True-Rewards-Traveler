@@ -11,18 +11,15 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.SimpleContainerData;
-import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 import java.util.Optional;
 
-public class WeatheredBeaconMenu extends AbstractContainerMenu {
+public class WeatheredBeaconMenu extends BeaconMenu {
     private static final int PAYMENT_SLOT = 0;
     private static final int SLOT_COUNT = 1;
     private static final int DATA_COUNT = 2;
@@ -31,46 +28,45 @@ public class WeatheredBeaconMenu extends AbstractContainerMenu {
     private static final int USE_ROW_SLOT_START = 28;
     private static final int USE_ROW_SLOT_END = 37;
 
-    private final Container beacon;
-    private final PaymentSlot paymentSlot;
+    private Container beacon;
+    private final Slot paymentSlot;
     private final ContainerLevelAccess access;
     private final ContainerData beaconData;
 
     public WeatheredBeaconMenu(int containerId, Container playerInventory, FriendlyByteBuf friendlyByteBuf) {
-        this(containerId, playerInventory, new SimpleContainerData(2), ContainerLevelAccess.NULL);
+        this(containerId, playerInventory, new SimpleContainerData(3), ContainerLevelAccess.NULL);
     }
 
     public WeatheredBeaconMenu(int containerId, Container playerInventory, ContainerData beaconData, ContainerLevelAccess access) {
-        super(ModMenus.WEATHERED_BEACON.get(), containerId);
+        super(containerId, playerInventory, beaconData,  access);
+        //use reflection to access final private field beacon from superclass
+        try {
+            Field beaconField = BeaconMenu.class.getDeclaredField("beacon");
+            beaconField.setAccessible(true);
+            this.beacon = (Container) beaconField.get(this);
+        } catch (Exception e) {
+            this.beacon = new SimpleContainer(1) {
+                public boolean canPlaceItem(int slot, ItemStack stack) {
+                    return stack.is(ItemTags.BEACON_PAYMENT_ITEMS);
+                }
 
-        this.beacon = new SimpleContainer(1) {
-            public boolean canPlaceItem(int slot, ItemStack stack) {
-                return stack.is(ItemTags.BEACON_PAYMENT_ITEMS);
-            }
+                public int getMaxStackSize() {
+                    return 1;
+                }
+            };
+        }
 
-            public int getMaxStackSize() {
-                return 1;
-            }
-        };
 
-        checkContainerDataCount(beaconData, 2);
         this.beaconData = beaconData;
         this.access = access;
-        this.paymentSlot = new PaymentSlot(this.beacon, 0, 136, 110);
-        this.addSlot(this.paymentSlot);
-        this.addDataSlots(beaconData);
+        this.paymentSlot = getSlot(0);
+        //this.addSlot(this.paymentSlot);
+        //this.addDataSlots(beaconData);
+    }
 
-        // Player inventory slots
-        for(int row = 0; row < 3; ++row) {
-            for(int col = 0; col < 9; ++col) {
-                this.addSlot(new Slot(playerInventory, col + row * 9 + 9, 36 + col * 18, 137 + row * 18));
-            }
-        }
-
-        // Player hotbar slots
-        for(int col = 0; col < 9; ++col) {
-            this.addSlot(new Slot(playerInventory, col, 36 + col * 18, 195));
-        }
+    @Override
+    public MenuType<?> getType() {
+        return ModMenus.WEATHERED_BEACON.get();
     }
 
     @Override
@@ -155,14 +151,23 @@ public class WeatheredBeaconMenu extends AbstractContainerMenu {
         return MobEffect.byId(this.beaconData.get(1));
     }
 
-    public void updateEffects(Optional<MobEffect> primary) {
+    @Override
+    @Nullable
+    public MobEffect getSecondaryEffect() {
+        return getPrimaryEffect();
+    }
+
+    @Override
+    public void updateEffects(Optional<MobEffect> primary, Optional<MobEffect> secondary) {
         if (this.paymentSlot.hasItem()) {
             this.beaconData.set(1, primary.map(MobEffect::getId).orElse(-1));
+            this.beaconData.set(2, primary.map(MobEffect::getId).orElse(-1));
             this.paymentSlot.remove(1);
             this.access.execute(Level::blockEntityChanged);
         }
     }
 
+    @Override
     public boolean hasPayment() {
         return !this.beacon.getItem(0).isEmpty();
     }

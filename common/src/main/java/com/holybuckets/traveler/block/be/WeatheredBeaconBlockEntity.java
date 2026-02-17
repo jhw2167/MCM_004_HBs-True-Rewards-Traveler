@@ -1,6 +1,5 @@
 package com.holybuckets.traveler.block.be;
 
-import com.holybuckets.traveler.block.be.ModBlockEntities;
 import com.holybuckets.traveler.menu.WeatheredBeaconMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
@@ -12,13 +11,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 
 public class WeatheredBeaconBlockEntity extends BeaconBlockEntity {
 
+    public static final String MSG_ID_UPDATE_EFFECTS = "traveler_update_beacon_effects";
     // Pyramid level ranges: level 1 = 32, level 2 = 32, level 3 = 64, level 4 = 64
     private static final int[] LEVEL_RANGES = {32, 32, 64, 64};
 
@@ -33,15 +32,7 @@ public class WeatheredBeaconBlockEntity extends BeaconBlockEntity {
 
     // Override the tick method to customize behavior
     public static void tick(Level level, BlockPos pos, BlockState state, BeaconBlockEntity blockEntity) {
-        if (blockEntity instanceof WeatheredBeaconBlockEntity weatheredBeacon) {
-            weatheredBeacon.weatheredTick(level, pos, state);
-        } else {
-            BeaconBlockEntity.tick(level, pos, state, blockEntity);
-        }
-    }
-
-    private void weatheredTick(Level level, BlockPos pos, BlockState state) {
-        BeaconBlockEntity.tick(level, pos, state, this);
+        BeaconBlockEntity.tick(level, pos, state, blockEntity);
     }
 
     @Nullable

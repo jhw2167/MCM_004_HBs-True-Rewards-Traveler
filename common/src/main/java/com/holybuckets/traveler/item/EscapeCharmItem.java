@@ -2,7 +2,7 @@ package com.holybuckets.traveler.item;
 
 import com.holybuckets.traveler.core.ManagedTraveler;
 import static com.holybuckets.foundation.CommonClass.MESSAGER;
-import net.minecraft.core.BlockPos;
+
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -18,10 +18,10 @@ import net.minecraft.network.chat.Component;
  * - Must be at full health
  * - Must be inside a tracked structure
  */
-public class EscapeRopeItem extends InteractiveRewardItem {
+public class EscapeCharmItem extends InteractiveRewardItem {
 
-    public EscapeRopeItem() {
-        super("escape_rope", true); // Consumes on use
+    public EscapeCharmItem() {
+        super("escape_charm", true); // Consumes on use
     }
 
     @Override
@@ -37,7 +37,7 @@ public class EscapeRopeItem extends InteractiveRewardItem {
         // Check if player is at full health
         if (player.getHealth() < player.getMaxHealth()) {
             MESSAGER.sendBottomActionHint(
-                Component.translatable("item.hbs_traveler_rewards.escape_rope.not_full_health").getString()
+                Component.translatable("item.hbs_traveler_rewards.escape_charm.not_full_health").getString()
             );
             return InteractionResult.FAIL;
         }
@@ -46,7 +46,7 @@ public class EscapeRopeItem extends InteractiveRewardItem {
         ManagedTraveler traveler = ManagedTraveler.getManagedTraveler(player);
         if (traveler == null) {
             MESSAGER.sendBottomActionHint(
-                Component.translatable("item.hbs_traveler_rewards.escape_rope.failed").getString()
+                Component.translatable("item.hbs_traveler_rewards.escape_charm.failed").getString()
             );
             return InteractionResult.FAIL;
         }
@@ -55,7 +55,7 @@ public class EscapeRopeItem extends InteractiveRewardItem {
         if ( !traveler.isInStructure() && !traveler.isInDeepCaves())
         {
             MESSAGER.sendBottomActionHint(
-                Component.translatable("item.hbs_traveler_rewards.escape_rope.not_in_structure").getString()
+                Component.translatable("item.hbs_traveler_rewards.escape_charm.not_in_structure").getString()
             );
             return InteractionResult.FAIL;
         }
@@ -64,7 +64,7 @@ public class EscapeRopeItem extends InteractiveRewardItem {
 
         // Success message
         MESSAGER.sendBottomActionHint(
-            Component.translatable("item.hbs_traveler_rewards.escape_rope.success").getString()
+            Component.translatable("item.hbs_traveler_rewards.escape_charm.success").getString()
         );
 
         return InteractionResult.CONSUME;
