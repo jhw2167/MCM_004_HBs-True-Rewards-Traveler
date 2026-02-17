@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {"item": "hbs_traveler_rewards:quarter_heart"},
+    {"item": "hbs_traveler_rewards:quarter_heart"}
+  ],
+  "result": {
+    "item": "hbs_traveler_rewards:half_heart",
+    "count": 1
+  }
+}

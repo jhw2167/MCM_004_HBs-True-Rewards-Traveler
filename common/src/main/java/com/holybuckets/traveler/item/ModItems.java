@@ -68,19 +68,19 @@ public class ModItems {
         );
 
         // Register Simple Reward Items
-        items.registerItem(() -> saviorOrb = new SimpleRewardItem("savior_orb"), id("savior_orb"));
+        items.registerItem(() -> saviorOrb = createSimpleRewardItem("savior_orb"), id("savior_orb"));
 
         //
-        items.registerItem(() -> ironBloom = new SimpleRewardItem("iron_bloom"), id("iron_bloom"));
-        items.registerItem(() -> goldBloom = new SimpleRewardItem("gold_bloom"), id("gold_bloom"));
-        items.registerItem(() -> netheriteBloom = new SimpleRewardItem("netherite_bloom"), id("netherite_bloom"));
-        items.registerItem(() -> diamondShard = new SimpleRewardItem("diamond_shard"), id("diamond_shard"));
+        items.registerItem(() -> ironBloom = createSimpleRewardItem("iron_bloom"), id("iron_bloom"));
+        items.registerItem(() -> goldBloom = createSimpleRewardItem("gold_bloom"), id("gold_bloom"));
+        items.registerItem(() -> netheriteBloom = createSimpleRewardItem("netherite_bloom"), id("netherite_bloom"));
+        items.registerItem(() -> diamondShard = createSimpleRewardItem("diamond_shard"), id("diamond_shard"));
 
 
         // Register Interactive Reward Items
         //add SimpleRewardItem: quarter_heart, and half_heart
-        items.registerItem(() -> quarterHeart = new SimpleRewardItem("quarter_heart"), id("quarter_heart"));
-        items.registerItem(() -> halfHeart = new SimpleRewardItem("half_heart"), id("half_heart"));
+        items.registerItem(() -> quarterHeart = createSimpleRewardItem("quarter_heart"), id("quarter_heart"));
+        items.registerItem(() -> halfHeart = createSimpleRewardItem("half_heart"), id("half_heart"));
         items.registerItem(() -> pureHeart = new PureHeartItem(), id("pure_heart"));
         items.registerItem(() -> soulboundRitualTablet = new SoulboundRitualTabletItem(), id("soulbound_ritual_tablet"));
         items.registerItem(() -> fabricationRitualTablet = new FabricationRitualTabletItem(), id("fabrication_ritual_tablet"));
@@ -145,5 +145,9 @@ public class ModItems {
      */
     private static ResourceLocation id(String name) {
         return new ResourceLocation(MOD_ID, name);
+    }
+
+    private static SimpleRewardItem createSimpleRewardItem(String id) {
+        return new SimpleRewardItem(id, MOD_ID);
     }
 }

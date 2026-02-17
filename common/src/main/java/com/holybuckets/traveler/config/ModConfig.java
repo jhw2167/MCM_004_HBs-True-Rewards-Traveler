@@ -207,7 +207,7 @@ public class ModConfig {
         ResourceLocation loc = extractEntityId(id);
         if(loc==null) return;
         if(pools == null) return;
-        mobLootTables.put(id, pools);
+        mobLootTables.put(loc, pools);
     }
     //saveEntityLootTables
     //public static void loadEntityLootTables(ResourceLocation id, List<LootPool> pools, LootItemFunction[] functions)

@@ -114,13 +114,13 @@ public class PotionPotMenu extends AbstractContainerMenu {
         if (!ingredient.isEmpty()) {
             CompoundTag ingredientTag = new CompoundTag();
             ingredient.save(ingredientTag);
-            tag.put("Ingredient", ingredientTag);
+            tag.put("ingredient", ingredientTag);
         } else {
-            tag.remove("Ingredient");
+            tag.remove("ingredient");
         }
 
         // Save awkward potion count
-        tag.putInt("AwkwardPotionCount", awkwardPotionCount);
+        tag.putInt("awkward_potion_count", awkwardPotionCount);
     }
 
     /**
@@ -138,7 +138,7 @@ public class PotionPotMenu extends AbstractContainerMenu {
         ItemStack awkwardPotion = new ItemStack(Items.POTION);
         PotionUtils.setPotion(awkwardPotion, Potions.AWKWARD);
 
-        int savedCount = tag.contains("AwkwardPotionCount") ? tag.getInt("AwkwardPotionCount") : awkwardPotionCount;
+        int savedCount = tag.contains("awkward_potion_count") ? tag.getInt("awkward_potion_count") : awkwardPotionCount;
         for (int i = 0; i < savedCount; i++) {
             brewingContainer.setItem(i, awkwardPotion.copy());
         }
@@ -148,8 +148,8 @@ public class PotionPotMenu extends AbstractContainerMenu {
         }
 
         // Load ingredient
-        if (tag.contains("Ingredient")) {
-            ItemStack ingredient = ItemStack.of(tag.getCompound("Ingredient"));
+        if (tag.contains("ingredient")) {
+            ItemStack ingredient = ItemStack.of(tag.getCompound("ingredient"));
             brewingContainer.setItem(3, ingredient);
         } else {
             brewingContainer.setItem(3, ItemStack.EMPTY);

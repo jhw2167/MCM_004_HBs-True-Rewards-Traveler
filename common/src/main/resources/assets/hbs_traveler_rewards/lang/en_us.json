@@ -18,7 +18,10 @@
   "item.hbs_traveler_rewards.savior_orb": "Savior Orb",
   "item.hbs_traveler_rewards.savior_orb.desc": "On death the Orb saves your items in it like a chest. It also sets a waypoint to its location and will try to reunite with you when nearby",
 
-  "item.hbs_traveler_rewards.half_heart": "Pure Heart",
+  "item.hbs_traveler_rewards.quarter_heart": "Quarter Heart",
+  "item.hbs_traveler_rewards.quarter_heart.desc": "Combine to create a larger heart portion!",
+  "item.hbs_traveler_rewards.half_heart": "Half Heart",
+    "item.hbs_traveler_rewards.half_heart.desc": "Combine to create a Pure Heart!",
   "item.hbs_traveler_rewards.pure_heart": "Pure Heart",
   "item.hbs_traveler_rewards.pure_heart.desc": "Grants an extra heart of health",
   "item.hbs_traveler_rewards.pure_heart.success": "Extra heart granted!",
@@ -38,9 +41,12 @@
   "item.hbs_traveler_rewards.warrior_ritual_tablet.desc": "A magic ritual granted to the Ancient Warriors. The ritual reduces player attack cooldown and knockback from mobs.",
 
   "item.hbs_traveler_rewards.potion_pot": "Potion Pot",
-  "item.hbs_traveler_rewards.potion_pot.desc": "Cooks potion instantly, breaks on use. Add ingredients to the Pot inventory and then right click on water to brew.",
+  "item.hbs_traveler_rewards.potion_pot.desc": "Add ingredients to the Pot and then toss to brew. Cooks potions instantly and shatters on use.",
   "item.hbs_traveler_rewards.potion_pot.brewing": "Brewing...",
-  
+  "container.hbs_traveler_rewards.potion_pot": "Potion Pot",
+  "gui.hbs_traveler_rewards.potion_pot.locked": "Locked: Infinite Awkward Potion",
+
+
   "item.hbs_traveler_rewards.escape_charm": "Escape Charm",
   "item.hbs_traveler_rewards.escape_charm.desc": "Helps escape from a structure or cave system but only works at full health",
   "item.hbs_traveler_rewards.escape_charm.success": "Escaped successfully!",
@@ -69,10 +75,7 @@
   
   "item.hbs_traveler_rewards.diamond_hourglass": "Diamond Hourglass",
   "item.hbs_traveler_rewards.diamond_hourglass.desc": "Adds 2 levels of Lasting to any item in an anvil. Up to Lasting X.",
-  
-  "item.hbs_traveler_rewards.mob_ward": "Mob Ward",
-  "item.hbs_traveler_rewards.mob_ward.desc": "Right click to add items to the ward. Any mob that drops this item will be warded away",
-  
+
   "item.hbs_traveler_rewards.empty_totem": "Empty Totem",
   "item.hbs_traveler_rewards.empty_totem.desc": "Preserves fragile items in its single inventory slot. Items cursed with Lasting will not decay while stored in a totem",
   
@@ -85,20 +88,16 @@
   "enchantment.hbs_traveler_rewards.lasting.expired": "Your %s has vanished due to the Curse of Lasting!",
 
   "item.hbs_traveler_rewards.mob_ward": "Mob Ward",
-  "item.hbs_traveler_rewards.mob_ward.desc": "Place an item to ward against specific mobs",
+  "item.hbs_traveler_rewards.mob_ward.desc": "Right click to add items to the ward. Any mob that drops this item will be warded away",
   "container.hbs_traveler_rewards.mob_ward": "Mob Ward",
   "gui.hbs_traveler_rewards.mob_ward.warding": "Warding: %s",
   "gui.hbs_traveler_rewards.mob_ward.no_mobs": "No mobs currently warded",
   "gui.hbs_traveler_rewards.mob_ward.slot_empty": "Place an item to ward against mobs",
 
-  "item.hbs_traveler_rewards.potion_pot": "Potion Pot",
-  "item.hbs_traveler_rewards.potion_pot.desc": "Portable brewing stand with infinite awkward potions",
-  "container.hbs_traveler_rewards.potion_pot": "Potion Pot",
-  "gui.hbs_traveler_rewards.potion_pot.locked": "Locked: Infinite Awkward Potion",
-
   "block.hbs_traveler_rewards.weathered_beacon": "Weathered Beacon",
   "container.hbs_traveler_rewards.weathered_beacon": "Weathered Beacon",
 
+  "block.hbs_traveler_rewards.copper_facade_block": "Copper Facade Block",
   "block.hbs_traveler_rewards.iron_facade_block": "Iron Facade Block",
   "block.hbs_traveler_rewards.gold_facade_block": "Gold Facade Block",
   "block.hbs_traveler_rewards.diamond_facade_block": "Diamond Facade Block",

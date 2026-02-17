@@ -62,11 +62,6 @@ public class EscapeCharmItem extends InteractiveRewardItem {
 
         traveler.onUseEscapeRope();
 
-        // Success message
-        MESSAGER.sendBottomActionHint(
-            Component.translatable("item.hbs_traveler_rewards.escape_charm.success").getString()
-        );
-
         return InteractionResult.CONSUME;
     }
 }

@@ -146,10 +146,20 @@ public class ItemImplementation {
             player.teleportTo(
                 structureEntryPos.getX() + 0.5, structureEntryPos.getY(), structureEntryPos.getZ() + 0.5
             );
+
+            // Success message
+            MESSAGER.sendBottomActionHint(
+            Component.translatable("item.hbs_traveler_rewards.escape_charm.success").getString()
+            );
+
         } else if( isInDeepCaves(player) ) {
             BlockPos surface = findSurfaceAbove(player);
             if(surface != null)
                 player.teleportTo( surface.getX() + 0.5, surface.getY(), surface.getZ() + 0.5);
+
+            MESSAGER.sendBottomActionHint(
+                Component.translatable("item.hbs_traveler_rewards.escape_charm.success").getString()
+            );
         }
     }
 
@@ -313,7 +323,7 @@ public class ItemImplementation {
         if (!potionPotStack.hasTag()) return List.of();
         CompoundTag tag = potionPotStack.getTag();
 
-        int awkwardPotionCount = tag.getInt("AwkwardPotionCount");
+        int awkwardPotionCount = tag.getInt("awkward_potion_count");
         if (awkwardPotionCount <= 0) return List.of();
 
         List<ItemStack> potions = new ArrayList<>();
@@ -323,15 +333,19 @@ public class ItemImplementation {
             potions.add(awkwardPotion);
         }
 
-        if (!tag.contains("Ingredient")) return potions;
+        if (!tag.contains("ingredient")) return potions;
 
-        ItemStack ingredient = ItemStack.of(tag.getCompound("Ingredient"));
+        ItemStack ingredient = ItemStack.of(tag.getCompound("ingredient"));
         if (ingredient.isEmpty()) return potions;
-        if (!PotionBrewing.hasMix(ingredient, potions.get(0))) return potions;
 
         List<ItemStack> brewedPotions = new ArrayList<>();
         for(ItemStack basePotion : potions) {
-            brewedPotions.add( PotionBrewing.mix(ingredient, basePotion) );
+            brewedPotions.add( PotionBrewing.mix( ingredient, basePotion) );
+        }
+
+        ingredient.shrink(1);
+        if(!ingredient.isEmpty() || ingredient.getCount() > 0) {
+            brewedPotions.add(ingredient); //need to drop excess ingredients
         }
 
         return brewedPotions;
@@ -358,6 +372,7 @@ public class ItemImplementation {
                 player.level().addFreshEntity(itemEntity);
             }
         }
+
     }
 
     private static final UUID WARRIOR_RITUAL_ATTACK_SPEED_MODIFIER_UUID = UUID.fromString("b4e8af8f-6d9e-5f4b-ac3f-2e5d7f9d1c2d");

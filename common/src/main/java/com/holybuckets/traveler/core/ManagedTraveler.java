@@ -9,7 +9,9 @@ import com.holybuckets.foundation.event.custom.ServerTickEvent;
 import com.holybuckets.foundation.event.custom.TickType;
 import com.holybuckets.foundation.modelInterface.IManagedPlayer;
 import com.holybuckets.foundation.player.ManagedPlayer;
+import com.holybuckets.foundation.structure.StructureAPI;
 import com.holybuckets.foundation.structure.StructureInfo;
+import com.holybuckets.foundation.structure.StructureManager;
 import com.holybuckets.traveler.enchantment.ModEnchantments;
 import com.holybuckets.traveler.item.ModItems;
 import io.netty.util.collection.IntObjectHashMap;
@@ -207,11 +209,25 @@ public class ManagedTraveler implements IManagedPlayer {
         ITEM_IMPLEMENTATION.setHealth(player, pureHeartsConsumed);
     }
 
+    private static int distSq(BlockPos p1, BlockPos p2) {
+        return  HBUtil.BlockUtil.distanceSqr(p1, p2);
+    }
+
     private void onPlayerNearStructure(StructureInfo structureInfo)
     {
-        if(structureInfo != closestStructureInfo) {
-            structureEntryPos = player.blockPosition().offset(0,1,0);
+        if(closestStructureInfo == null) {
             closestStructureInfo = structureInfo;
+            return;
+        }
+
+        if(structureInfo != closestStructureInfo) {
+            BlockPos newPos = structureInfo.getOrigin();
+            BlockPos oldPos = closestStructureInfo.getOrigin();
+            BlockPos pPos = player.blockPosition();
+
+            if(distSq(pPos, newPos) < distSq(pPos, oldPos)) {
+                closestStructureInfo = structureInfo;
+            }
         }
     }
 
@@ -227,7 +243,6 @@ public class ManagedTraveler implements IManagedPlayer {
     public void onUseEscapeRope()
     {
         ITEM_IMPLEMENTATION.onUseEscapeRope(player, structureEntryPos);
-        structureEntryPos = null;
     }
 
     /**
@@ -522,6 +537,25 @@ public class ManagedTraveler implements IManagedPlayer {
 
     }
 
+    public void testClosestStructure()
+    {
+        BlockPos pPos = player.blockPosition();
+        if(closestStructureInfo == null) {
+            structureEntryPos = pPos.offset(0,1,0);
+            return;
+        }
+        StructureAPI api = StructureAPI.get(this.player.level());
+        if(api==null) return;
+        List<StructureInfo> info = api.nearestStructures(pPos, 1);
+        if(info.isEmpty()) return;
+        StructureInfo s = info.get(0);
+        if(!HBUtil.BlockUtil.inRange( pPos, s.getOrigin() , (int) StructureManager.NEAR_STRUCTURE_THRESHOLD)) {
+            closestStructureInfo = null;
+            structureEntryPos = pPos.offset(0,1,0);
+        }
+    }
+
+
     //** NBT SERIALIZATION **/
 
     @Override
@@ -608,6 +642,7 @@ public class ManagedTraveler implements IManagedPlayer {
             if (traveler.player instanceof ServerPlayer serverPlayer) {
                 traveler.takeInventory();
                 traveler.applyWarriorRitualBonus();
+                traveler.testClosestStructure();
                 ITEM_IMPLEMENTATION.checkLastingEnchantments(serverPlayer, traveler.lastingItems);
                 ITEM_IMPLEMENTATION.wardMobs(serverPlayer, traveler.mobWards, traveler.getNearbyEntities());
             }

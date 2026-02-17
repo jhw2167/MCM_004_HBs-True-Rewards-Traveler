@@ -54,8 +54,8 @@ public class PotionPotItem extends InteractiveRewardItem {
     private void openPotionPotMenu(ServerPlayer player, ItemStack potionPotStack) {
         // Get or generate awkward potion count
         int awkwardPotionCount;
-        if (potionPotStack.hasTag() && potionPotStack.getTag().contains("AwkwardPotionCount")) {
-            awkwardPotionCount = potionPotStack.getTag().getInt("AwkwardPotionCount");
+        if (potionPotStack.hasTag() && potionPotStack.getTag().contains("awkward_potion_count")) {
+            awkwardPotionCount = potionPotStack.getTag().getInt("awkward_potion_count");
         } else {
             awkwardPotionCount = RANDOM.nextInt(3) + 1;
         }
