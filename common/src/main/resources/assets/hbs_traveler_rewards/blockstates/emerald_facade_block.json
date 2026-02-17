@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "hbs_traveler_rewards:block/emerald_facade_block"
+    }
+  }
+}

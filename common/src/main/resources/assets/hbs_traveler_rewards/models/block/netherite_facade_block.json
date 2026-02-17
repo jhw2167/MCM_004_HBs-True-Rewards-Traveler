@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "hbs_traveler_rewards:block/netherite_facade_block"
+  }
+}
