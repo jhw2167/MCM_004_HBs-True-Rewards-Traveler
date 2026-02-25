@@ -313,7 +313,7 @@ public class ManagedTraveler implements IManagedPlayer {
     public void setPlayer(Player player)
     {
         if(player == null) return;
-        if(player == this.player || player == this.localPlayer) return;
+        if(player == this.player) return;
 
         if(player instanceof ServerPlayer)
         { //ServerPlayer serverPlayer server side only
@@ -607,7 +607,8 @@ public class ManagedTraveler implements IManagedPlayer {
 
         if (tag.contains("total_hearts")) {
             pureHeartsConsumed = tag.getInt("total_hearts");
-            ITEM_IMPLEMENTATION.setHealth(player, pureHeartsConsumed);
+            if(ITEM_IMPLEMENTATION!=null) //serverSide only
+                ITEM_IMPLEMENTATION.setHealth(player, pureHeartsConsumed);
         }
         if (tag.contains("warrior_tablets")) {
             warriorTabletsUsed = tag.getInt("warrior_tablets");

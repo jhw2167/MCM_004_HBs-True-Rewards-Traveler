@@ -4,7 +4,6 @@
     "hbs_traveler_rewards:iron_facade_block",
     "hbs_traveler_rewards:gold_facade_block",
     "hbs_traveler_rewards:diamond_facade_block",
-    "hbs_traveler_rewards:emerald_facade_block",
-    "hbs_traveler_rewards:netherite_facade_block"
+    "hbs_traveler_rewards:emerald_facade_block"
   ]
 }

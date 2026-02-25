@@ -1,6 +1,7 @@
 // WeatheredBeaconMenu.java
 package com.holybuckets.traveler.menu;
 
+import com.holybuckets.foundation.GeneralConfig;
 import com.holybuckets.traveler.block.ModBlocks;
 import com.holybuckets.traveler.menu.ModMenus;
 import net.minecraft.network.FriendlyByteBuf;
@@ -45,15 +46,8 @@ public class WeatheredBeaconMenu extends BeaconMenu {
             beaconField.setAccessible(true);
             this.beacon = (Container) beaconField.get(this);
         } catch (Exception e) {
-            this.beacon = new SimpleContainer(1) {
-                public boolean canPlaceItem(int slot, ItemStack stack) {
-                    return stack.is(ItemTags.BEACON_PAYMENT_ITEMS);
-                }
-
-                public int getMaxStackSize() {
-                    return 1;
-                }
-            };
+            String side = GeneralConfig.getInstance().isClientSide() ? "client" : "server";
+           throw new RuntimeException("Failed to access beacon field in BeaconMenu on side " + side, e);
         }
 
 
