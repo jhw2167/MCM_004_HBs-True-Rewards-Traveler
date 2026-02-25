@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.holybuckets.foundation.player.ManagedPlayer.getManagedPlayer;
 import static com.holybuckets.foundation.player.ManagedPlayer.registerManagedPlayerData;
 
 /**
@@ -76,7 +77,7 @@ public class ManagedTraveler implements IManagedPlayer {
     private int totalDeaths;
     private int pureHeartsConsumed; // Pure Heart tracking
     private int warriorTabletsUsed;
-    private int lastWarriorRitual;
+    private int lastWarriorRitual;  //helper variable to ensure one warriorTablet used per click
 
     //Statics
     private static GeneralConfig GENERAL_CONFIG;
@@ -111,7 +112,7 @@ public class ManagedTraveler implements IManagedPlayer {
     public static void init(EventRegistrar reg) {
         reg.registerOnBeforeServerStarted( ManagedTraveler::onBeforeServerStarted, EventPriority.Lowest );
         reg.registerOnPlayerNearStructure(null, ManagedTraveler::onPlayerNearStructure);
-        reg.registerOnServerTick(TickType.ON_20_TICKS, ManagedTraveler::onServer20ticks );
+        reg.registerOnServerTick(TickType.ON_SINGLE_TICK, ManagedTraveler::onServerTicks);
         reg.registerOnTossItem(ManagedTraveler::onPlayerTossItem);
     }
 
@@ -125,6 +126,7 @@ public class ManagedTraveler implements IManagedPlayer {
         ManagedTraveler traveler = ManagedTraveler.getManagedTraveler(serverPlayer);
         if(traveler == null) return;
         traveler.addHealth();
+        getManagedPlayer(serverPlayer).save();
     }
 
     public static void useWarriorRitualTablet(ServerPlayer serverPlayer) {
@@ -282,13 +284,13 @@ public class ManagedTraveler implements IManagedPlayer {
         return totalDeaths;
     }
 
-    private void applyWarriorRitualBonus()
+    private void applyWarriorRitualBonusOnTick()
     {
         if(player.getAttributes() == null) return;
         if(player.getAttributes().getInstance(Attributes.ATTACK_SPEED) == null) return;
 
         if(lastWarriorRitual == warriorTabletsUsed) return;
-        ITEM_IMPLEMENTATION.applyWarriorRitualBonus(player, warriorTabletsUsed);
+        ITEM_IMPLEMENTATION.setWarriorRitualBonus(player, warriorTabletsUsed);
         lastWarriorRitual = warriorTabletsUsed;
     }
 
@@ -397,7 +399,6 @@ public class ManagedTraveler implements IManagedPlayer {
         localPlayer = null;
 
         this.cleanupSoulboundItemsOnLeave();
-        TRAVELERS.remove(getId(player));
     }
 
     /**
@@ -444,8 +445,8 @@ public class ManagedTraveler implements IManagedPlayer {
         if (player instanceof ServerPlayer serverPlayer) {
             restoreSoulboundItems();
         }
-        this.lastWarriorRitual = -1;
-        this.setHealth(this.pureHeartsConsumed);
+        this.lastWarriorRitual = -1;                //reset ritual bonus on respawn
+        this.setHealth(this.pureHeartsConsumed);    //set full health again on spawn
     }
 
     @Override
@@ -606,9 +607,11 @@ public class ManagedTraveler implements IManagedPlayer {
 
         if (tag.contains("total_hearts")) {
             pureHeartsConsumed = tag.getInt("total_hearts");
+            ITEM_IMPLEMENTATION.setHealth(player, pureHeartsConsumed);
         }
         if (tag.contains("warrior_tablets")) {
-            //warriorTabletsUsed = tag.getInt("warrior_tablets");
+            warriorTabletsUsed = tag.getInt("warrior_tablets");
+            lastWarriorRitual = -1;    //reset ritual bonus so it will be applied on next tick
         }
         if (tag.contains("death_location")) {
             lastDeathLocation = DeathLocation.deserialize(tag.getString("death_location"));
@@ -636,12 +639,17 @@ public class ManagedTraveler implements IManagedPlayer {
     /**
      * Called every 20 server ticks to check for Lasting enchantment expiration
      */
-    private static void onServer20ticks(ServerTickEvent event) {
+    private static int count=0;
+    private static void onServerTicks(ServerTickEvent event)
+    {
+        if(count++<10) return;
+        count=0;
+
         for (ManagedTraveler traveler : TRAVELERS.values()) {
             if(traveler.player == null) continue;
             if (traveler.player instanceof ServerPlayer serverPlayer) {
                 traveler.takeInventory();
-                traveler.applyWarriorRitualBonus();
+                traveler.applyWarriorRitualBonusOnTick();
                 traveler.testClosestStructure();
                 ITEM_IMPLEMENTATION.checkLastingEnchantments(serverPlayer, traveler.lastingItems);
                 ITEM_IMPLEMENTATION.wardMobs(serverPlayer, traveler.mobWards, traveler.getNearbyEntities());
@@ -658,8 +666,7 @@ public class ManagedTraveler implements IManagedPlayer {
         if (!(player instanceof ServerPlayer serverPlayer)) return;
 
         ItemStack stack = event.getItemStack();
-        if(stack.getItem() == ModItems.potionPot)
-        {
+        if(stack.getItem() == ModItems.potionPot) {
             ITEM_IMPLEMENTATION.handlePotionPotToss(serverPlayer, stack);
         }
 

@@ -28,11 +28,4 @@ public class WarriorRitualTabletItem extends InteractiveRewardItem {
         return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
     }
 
-    /**
-     * Helper method to check if a slot is soulbound for a player
-     */
-    public static boolean isSlotSoulbound(Player player, int slotIndex) {
-        ManagedTraveler mp = ManagedTraveler.getManagedTraveler(player);
-        return mp.isSlotSoulbound(slotIndex);
-    }
 }

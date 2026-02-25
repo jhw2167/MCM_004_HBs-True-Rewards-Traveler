@@ -95,14 +95,21 @@
   "gui.hbs_traveler_rewards.mob_ward.slot_empty": "Place an item to ward against mobs",
 
   "block.hbs_traveler_rewards.weathered_beacon": "Weathered Beacon",
+  "block.hbs_traveler_rewards.weathered_beacon.desc": "A beacon weakened by the passage of time",
   "container.hbs_traveler_rewards.weathered_beacon": "Weathered Beacon",
 
   "block.hbs_traveler_rewards.copper_facade_block": "Copper Facade Block",
+  "block.hbs_traveler_rewards.copper_facade_block.desc": "This block may substitute for a copper block in a Beacon Pyramid",
   "block.hbs_traveler_rewards.iron_facade_block": "Iron Facade Block",
+  "block.hbs_traveler_rewards.iron_facade_block.desc": "This block may substitute for an iron block in a Beacon Pyramid",
   "block.hbs_traveler_rewards.gold_facade_block": "Gold Facade Block",
+  "block.hbs_traveler_rewards.gold_facade_block.desc": "This block may substitute for a gold block in a Beacon Pyramid",
   "block.hbs_traveler_rewards.diamond_facade_block": "Diamond Facade Block",
+  "block.hbs_traveler_rewards.diamond_facade_block.desc": "This block may substitute for a diamond block in a Beacon Pyramid",
   "block.hbs_traveler_rewards.emerald_facade_block": "Emerald Facade Block",
-  "block.hbs_traveler_rewards.netherite_facade_block": "Netherite Facade Block"
+  "block.hbs_traveler_rewards.emerald_facade_block.desc": "This block may substitute for an emerald block in a Beacon Pyramid",
+  "block.hbs_traveler_rewards.netherite_facade_block": "Netherite Facade Block",
+  "block.hbs_traveler_rewards.netherite_facade_block.desc": "This block may substitute for a netherite block in a Beacon Pyramid"
 
 
 }

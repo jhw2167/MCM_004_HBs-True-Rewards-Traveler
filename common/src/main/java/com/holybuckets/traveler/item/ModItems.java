@@ -8,6 +8,7 @@ import net.blay09.mods.balm.api.item.BalmItems;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ItemLike;
 
 import static com.holybuckets.traveler.Constants.MOD_ID;
 
@@ -68,12 +69,12 @@ public class ModItems {
         );
 
         // Register Simple Reward Items
-        items.registerItem(() -> saviorOrb = createSimpleRewardItem("savior_orb"), id("savior_orb"));
+        //items.registerItem(() -> saviorOrb = createSimpleRewardItem("savior_orb"), id("savior_orb"));
 
         //
-        items.registerItem(() -> ironBloom = createSimpleRewardItem("iron_bloom"), id("iron_bloom"));
-        items.registerItem(() -> goldBloom = createSimpleRewardItem("gold_bloom"), id("gold_bloom"));
-        items.registerItem(() -> netheriteBloom = createSimpleRewardItem("netherite_bloom"), id("netherite_bloom"));
+        items.registerItem(() -> ironBloom = createSimpleRewardItem("iron_bloom"), id("iron_bloom"), null);
+        items.registerItem(() -> goldBloom = createSimpleRewardItem("gold_bloom"), id("gold_bloom"), null);
+        items.registerItem(() -> netheriteBloom = createSimpleRewardItem("netherite_bloom"), id("netherite_bloom"), null);
         items.registerItem(() -> diamondShard = createSimpleRewardItem("diamond_shard"), id("diamond_shard"));
 
 
@@ -99,7 +100,7 @@ public class ModItems {
             "bracing",
             AnvilEnchantmentItem.EnchantmentType.UNBREAKING,
             1
-        ), id("bracing"));
+        ), id("bracing"), null);
 
         items.registerItem(() -> hourglass = new AnvilEnchantmentItem(
             "hourglass",
@@ -112,23 +113,27 @@ public class ModItems {
             "netherite_whetstone",
             AnvilEnchantmentItem.EnchantmentType.SHARPNESS,
             2
-        ), id("netherite_whetstone"));
+        ), id("netherite_whetstone"), null);
 
         items.registerItem(() -> netheriteBracing = new AnvilEnchantmentItem(
             "netherite_bracing",
             AnvilEnchantmentItem.EnchantmentType.UNBREAKING,
             2
-        ), id("netherite_bracing"));
+        ), id("netherite_bracing"), null);
 
         items.registerItem(() -> diamondHourglass = new AnvilEnchantmentItem(
             "diamond_hourglass",
             AnvilEnchantmentItem.EnchantmentType.LASTING,
             2
-        ), id("diamond_hourglass"));
+        ), id("diamond_hourglass"), null);
 
         // Register Inventory Holder Items
         items.registerItem(() -> mobWard = new MobWardItem(), id("mob_ward"));
-        items.registerItem(() -> emptyTotem = new EmptyTotemItem(), id("empty_totem"));
+        items.registerItem(() -> emptyTotem = new EmptyTotemItem(), id("empty_totem"), null);
+
+        items.addToCreativeModeTab(id(MOD_ID), () -> new ItemLike[] {
+            com.holybuckets.foundation.item.ModItems.enchantedEssence
+        });
     }
 
     public static void init(EventRegistrar reg) {

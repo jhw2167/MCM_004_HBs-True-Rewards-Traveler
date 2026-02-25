@@ -1,0 +1,166 @@
+====================================================
+  HB'S TRAVELER REWARDS — LOOT TABLE DESIGN NOTES
+====================================================
+
+----------------------------------------------------
+QUARTER HEART
+----------------------------------------------------
+  Structures:
+    - Jungle Temple          5%
+    - Desert Temple          5%
+    - Dungeon (Mob Spawner)  5%
+  Mob Drops:
+    (none)
+  Notes: Early game reward for exploring ancient overworld structures.
+
+----------------------------------------------------
+HALF HEART
+----------------------------------------------------
+  Structures:
+    - Jungle Temple          2%
+    - Desert Temple          2%
+    - Ocean Monument         5%
+    - Nether Bastion         5%
+  Mob Drops:
+    (none)
+  Notes: Rare upgrade, only found in more dangerous or mid-game structures.
+
+----------------------------------------------------
+WHETSTONE & BRACING
+----------------------------------------------------
+  Structures:
+    - Village Blacksmith     5%
+    - Abandoned Mineshaft    10%
+  Mob Drops:
+    (none)
+  Notes: Crafting-adjacent items that feel at home in work-related loot.
+
+----------------------------------------------------
+ENCHANTED ESSENCE
+----------------------------------------------------
+  Structures (plain essence, biome-appropriate enchant target):
+    - Desert Temple          20%
+    - Jungle Temple          20%
+    - Ocean Monument         20%  (aquatic enchant target)
+    - Abandoned Mineshaft    15%
+    - Nether Bastion         15%
+    - Nether Fortress        15%
+    - End City               20%
+    - Ancient City           20%
+  Mob Drops (pre-enchanted with random target):
+    - Witch                  10%  (already enchanted, random target)
+  Notes: Core progression item. Broadly available across all major biomes
+         and dimensions. Witch drops arrive pre-enchanted.
+
+----------------------------------------------------
+ESCAPE CHARM
+----------------------------------------------------
+  Structures:
+    - Desert Temple          5%
+    - Jungle Temple          5%
+    - Ocean Monument         5%
+    - Nether Bastion         5%
+    - Nether Fortress        5%
+    - End City               50%
+    - Ancient City           50%
+  Mob Drops:
+    - Witch                  0.5%
+    - Enderman               0.5%
+  Archaeology:
+    - Desert Well            8%
+    - Trail Ruins            8%
+  Notes: Rare across most sources; common only in the most dangerous
+         late-game locations. Archaeology reflects "lost traveler" theme.
+
+----------------------------------------------------
+EMPTY TOTEM
+----------------------------------------------------
+  Structures:
+    - Woodland Mansion       25%
+    - Pillager Outpost       25%
+  Mob Drops:
+    - Evoker                 1%
+  Archaeology:
+    - Desert Well            5%
+    - Trail Ruins            5%
+  Notes: Thematically tied to the existing Totem of Undying. Archaeology
+         chance reflects its ancient origin.
+
+----------------------------------------------------
+MOB WARD
+----------------------------------------------------
+  Structures:
+    - Ancient City           15%
+  Mob Drops:
+    - Evoker                 0.5%
+    - Witch                  0.5%
+  Notes: Rare and powerful — limited to the most dangerous sources only.
+
+----------------------------------------------------
+POTION POT
+----------------------------------------------------
+  Structures:
+    - Desert Temple          15%
+    - Jungle Temple          15%
+    - Dungeon (Mob Spawner)  20%
+    - Abandoned Mineshaft    20%
+    - Ocean Monument         15%
+    - Nether Fortress        15%
+    - Nether Bastion         10%
+  Mob Drops:
+    (none)
+  Notes: Common in ancient and dungeon-style structures. Fits thematically
+         alongside existing brewing ingredients.
+
+----------------------------------------------------
+DIAMOND SHARD
+----------------------------------------------------
+  Structures:
+    - Dungeon (Mob Spawner)  5%
+    - Abandoned Mineshaft    5%
+    - Nether Fortress        25%
+    - Ancient City           25%
+  Mob Drops:
+    (none)
+  Notes: Scarce in early structures, more reliable in late-game locations.
+
+----------------------------------------------------
+FABRICATION RITUAL TABLET
+----------------------------------------------------
+  Structures:
+    - Ancient City           15%
+    - Dungeon (Mob Spawner)  5%
+  Mob Drops:
+    - Vindicator             1%
+  Notes: Ancient Builder lore — fits the deep, forgotten places and the
+         most aggressive construction-themed mob.
+
+----------------------------------------------------
+WARRIOR RITUAL TABLET
+----------------------------------------------------
+  Structures:
+    - Nether Bastion         5%
+  Mob Drops:
+    (none)
+  Notes: Exclusive to Bastions. Fits the aggressive combat culture of Piglins.
+
+----------------------------------------------------
+SOULBOUND RITUAL TABLET
+----------------------------------------------------
+  Structures:
+    - Ancient City           5%
+  Mob Drops:
+    - Enderman               0.1%
+    - Ender Dragon (on kill) 1 guaranteed drop
+  Notes: Rarest of the ritual tablets. The Ender Dragon guaranteed drop
+         provides a meaningful end-game milestone reward.
+
+====================================================
+  GENERAL NOTES
+====================================================
+  - Facade Blocks are intended to be crafted, not found as loot.
+  - Weathered Beacon is a structure find (Ocean Monument, Stronghold,
+    or Woodland Mansion recommended), not a mob drop.
+  - Iron Bloom and Gold Bloom excluded from loot tables for now.
+  - All percentages are per-chest unless noted as mob drop rates.
+====================================================

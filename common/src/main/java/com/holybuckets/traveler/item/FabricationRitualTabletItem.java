@@ -30,7 +30,8 @@ public class FabricationRitualTabletItem extends InteractiveRewardItem {
     }
 
     @Override
-    protected InteractionResult onRightClickBlock(UseOnContext context) {
+    protected InteractionResult onRightClickBlock(UseOnContext context)
+    {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
 

@@ -55,11 +55,14 @@ public class ModBlocks {
             id("emerald_facade_block")
         );
 
+    /*
         blocks.register(
             () -> netheriteBlockFacade = new MetalFacadeBlock(facadeProperties()),
             () -> itemBlock(netheriteBlockFacade),
             id("netherite_facade_block")
         );
+     */
+
     }
 
     private static BlockItem itemBlock(Block block) {

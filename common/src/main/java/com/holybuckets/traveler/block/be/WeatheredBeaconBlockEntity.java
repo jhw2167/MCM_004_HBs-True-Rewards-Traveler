@@ -1,14 +1,21 @@
 package com.holybuckets.traveler.block.be;
 
 import com.holybuckets.traveler.menu.WeatheredBeaconMenu;
+import net.blay09.mods.balm.api.menu.BalmMenuProvider;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.BeaconMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -51,6 +58,38 @@ public class WeatheredBeaconBlockEntity extends BeaconBlockEntity {
             containerId, playerInventory, access,
             ContainerLevelAccess.create(this.level, this.getBlockPos())
         );
+    }
+
+    public BalmMenuProvider getMenuProvider() {
+        return new BalmMenuProvider() {
+            @Override
+            public Component getDisplayName() {
+                return Component.translatable("block.hbs_traveler_rewards.weathered_beacon");
+            }
+
+            @Override
+            public AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
+                ContainerData dataAccess;
+                try {
+                    Field beaconField = BeaconBlockEntity.class.getDeclaredField("dataAccess");
+                    beaconField.setAccessible(true);
+                    dataAccess = (ContainerData) beaconField.get(WeatheredBeaconBlockEntity.this);
+                } catch (Exception e) {
+                    return  null;
+                }
+                Level level = WeatheredBeaconBlockEntity.this.level;
+                BlockPos pos = WeatheredBeaconBlockEntity.this.getBlockPos();
+                return new WeatheredBeaconMenu(syncId, playerInventory,
+                    dataAccess, ContainerLevelAccess.create(level, pos)
+                );
+
+            }
+
+            @Override
+            public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
+                buf.writeBlockPos(worldPosition);
+            }
+        };
     }
 
 }

@@ -11,6 +11,7 @@ import io.netty.util.collection.IntObjectMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -113,6 +114,8 @@ public class ItemImplementation {
         return (player.blockPosition().getY() < escape_charm_MAX_Y_CAVE_ESCAPE);
     }
 
+
+    private static final int[] offsets = {-48, -32, -16, 16, 32, 48};
     /**
      * Finds the surface directly above the player's current position
      * @return BlockPos at surface level, or null if not found
@@ -130,13 +133,28 @@ public class ItemImplementation {
         // Get the top solid block at this X,Z coordinate
         // This uses Minecraft's built-in heightmap which tracks the surface
         int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
-        BlockPos surfacePos = new BlockPos(x, surfaceY, z);
-        if (level.getBlockState(surfacePos).isAir() &&
-            level.getBlockState(surfacePos.above()).isAir()) {
-            return surfacePos;
+        BlockPos bestPos = new BlockPos(x, surfaceY, z);
+        int highestY = Integer.MIN_VALUE;
+        for (int dx : offsets) {
+            for (int dz : offsets) {
+                 x = playerPos.getX() + dx;
+                 z = playerPos.getZ() + dz;
+
+                if( surfaceY > level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z))
+                    continue;
+                surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+                BlockPos surfacePos = new BlockPos(x, surfaceY, z);
+
+                if (level.getBlockState(surfacePos).isAir() &&
+                    level.getBlockState(surfacePos.above()).isAir() &&
+                    surfaceY > highestY) {
+                    highestY = surfaceY;
+                    bestPos = surfacePos;
+                }
+            }
         }
 
-        return null;
+        return bestPos; // null if no valid spot found
     }
 
     void onUseEscapeRope(Player player, BlockPos structureEntryPos)
@@ -287,7 +305,7 @@ public class ItemImplementation {
     void wardMobs(ServerPlayer player, IntObjectMap<ItemStack> mobWards,  Set<Entity> nearbyEntities)
     {
         for (ItemStack mobWardStack : mobWards.values()) {
-            if(mobWardStack.getTag().contains("filterItem")) {
+            if(mobWardStack.getOrCreateTag().contains("filterItem")) {
                 ItemStack filterItem = ItemStack.of(mobWardStack.getTag().getCompound("filterItem"));
                 nearbyEntities.forEach(e -> wardEntity(e, player, filterItem));
             }
@@ -369,7 +387,7 @@ public class ItemImplementation {
                 ItemEntity itemEntity = new ItemEntity( player.level(),
                     inFront.x, inFront.y, inFront.z, dropStack
                 );
-                player.level().addFreshEntity(itemEntity);
+                ((ServerLevel) player.level()).addFreshEntity(itemEntity);
             }
         }
 
@@ -433,7 +451,7 @@ public class ItemImplementation {
     /**
      * Applies warrior ritual attack speed and knockback resistance bonuses to player
      */
-    void applyWarriorRitualBonus(Player player, int warriorTabletsUsed)
+    void setWarriorRitualBonus(Player player, int warriorTabletsUsed)
     {
         AttributeInstance attackSpeedAttribute = player.getAttribute(Attributes.ATTACK_SPEED);
         if (attackSpeedAttribute == null) return;

@@ -1,9 +1,13 @@
 package com.holybuckets.traveler.block;
 
 import com.holybuckets.traveler.block.be.WeatheredBeaconBlockEntity;
+import net.blay09.mods.balm.api.Balm;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -46,7 +50,7 @@ public class WeatheredBeaconBlock extends BeaconBlock {
 
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof WeatheredBeaconBlockEntity weatheredBeacon) {
-            player.openMenu(weatheredBeacon);
+            Balm.getNetworking().openMenu(player, weatheredBeacon.getMenuProvider());
             return InteractionResult.CONSUME;
         }
 
@@ -63,4 +67,5 @@ public class WeatheredBeaconBlock extends BeaconBlock {
             super.onRemove(state, level, pos, newState, isMoving);
         }
     }
+
 }

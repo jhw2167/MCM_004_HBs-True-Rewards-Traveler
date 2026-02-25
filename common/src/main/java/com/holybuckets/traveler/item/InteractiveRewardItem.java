@@ -70,7 +70,7 @@ public abstract class InteractiveRewardItem extends Item {
     public InteractionResult useOn(UseOnContext context) {
         InteractionResult result = onRightClickBlock(context);
 
-        if (result.consumesAction() && consumeOnUse && !context.getPlayer().isCreative()) {
+        if (result.equals(InteractionResult.SUCCESS) && consumeOnUse && !context.getPlayer().isCreative()) {
             context.getItemInHand().shrink(1);
         }
 

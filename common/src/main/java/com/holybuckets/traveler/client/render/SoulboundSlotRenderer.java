@@ -59,6 +59,8 @@ public class SoulboundSlotRenderer {
      */
     public static void renderHotbarSoulboundIndicators(GuiDrawEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
+        if(mc.options.hideGui) return;
+
         Player player = mc.player;
         if (player == null) return;
 

@@ -203,11 +203,11 @@ public class ModConfig {
         }
     }
 
-    public static void saveEntityLootTables(ResourceLocation id, List<LootPool> pools, LootItemFunction[] functions) {
+    public static void saveEntityLootTables(ResourceLocation id, LootPool[] pools, LootItemFunction[] functions) {
         ResourceLocation loc = extractEntityId(id);
         if(loc==null) return;
         if(pools == null) return;
-        mobLootTables.put(loc, pools);
+        mobLootTables.put(loc, Arrays.asList(pools));
     }
     //saveEntityLootTables
     //public static void loadEntityLootTables(ResourceLocation id, List<LootPool> pools, LootItemFunction[] functions)
