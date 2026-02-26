@@ -4,9 +4,12 @@ import com.holybuckets.foundation.HBUtil;
 import com.holybuckets.foundation.event.EventRegistrar;
 import com.holybuckets.traveler.LoggerProject;
 import com.holybuckets.traveler.TravelerRewardsMain;
+import com.holybuckets.traveler.mixin.LootItemAccessor;
+import com.holybuckets.traveler.mixin.LootPoolAccessor;
 import net.blay09.mods.balm.api.event.EventPriority;
 import net.blay09.mods.balm.api.event.server.ServerStartingEvent;
 import net.blay09.mods.balm.api.event.server.ServerStoppedEvent;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -15,6 +18,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
 import org.apache.commons.lang3.tuple.Pair;
@@ -183,25 +187,6 @@ public class ModConfig {
         return result;
     }
 
-    // Reflection fields (cached)
-    private static Field POOL_ENTRIES_FIELD;
-    private static Field LOOT_ITEM_FIELD;
-
-    static {
-        try {
-            // Cache reflection fields on class load
-            POOL_ENTRIES_FIELD = LootPool.class.getDeclaredField("entries");
-            POOL_ENTRIES_FIELD.setAccessible(true);
-
-            // LootItem class is inner class of entries package
-            Class<?> lootItemClass = Class.forName("net.minecraft.world.level.storage.loot.entries.LootItem");
-            LOOT_ITEM_FIELD = lootItemClass.getDeclaredField("item");
-            LOOT_ITEM_FIELD.setAccessible(true);
-
-        } catch (Exception e) {
-            LoggerProject.logError("001011", "Failed to initialize reflection fields for loot tables: " + e.getMessage());
-        }
-    }
 
     public static void saveEntityLootTables(ResourceLocation id, LootPool[] pools, LootItemFunction[] functions) {
         ResourceLocation loc = extractEntityId(id);
@@ -222,18 +207,19 @@ public class ModConfig {
 
         try {
             for (LootPool pool : pools) {
-                LootPoolEntryContainer[] entries = (LootPoolEntryContainer[]) POOL_ENTRIES_FIELD.get(pool);
+                LootPoolEntryContainer[] entries = ((LootPoolAccessor) pool).getEntries();
                 if (entries == null || entries.length<1) continue;
 
                 for (LootPoolEntryContainer entry : entries) {
-                    if (entry.getClass().getSimpleName().equals("LootItem")) {
-                        Item item = (Item) LOOT_ITEM_FIELD.get(entry);
+                    if (entry instanceof LootItem lootItem) {
+                        Item item = ((LootItemAccessor) lootItem).getItem();
                         if (item != null) lootItems.add(item);
                     }
                 }
             }
         } catch (Exception e) {
             LoggerProject.logDebug("001010", "Failed to load loot table for " + loc + ": " + e.getMessage());
+            throw new RuntimeException("Failed to load loot table for " + loc, e);
         }
 
       return lootItems;

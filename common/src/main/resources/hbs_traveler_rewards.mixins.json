@@ -6,7 +6,10 @@
     "compatibilityLevel": "JAVA_17",
     "mixins": [
         "BeaconMenuMixin",
-        "LootTableMixin"
+        "BeaconBlockEntityAccessor",
+        "LootTableMixin",
+        "LootPoolAccessor",
+        "LootItemAccessor"
     ],
     "client": [
     ],

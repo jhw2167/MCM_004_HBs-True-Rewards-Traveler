@@ -2,6 +2,7 @@ package com.holybuckets.traveler.block.be;
 
 import com.holybuckets.traveler.LoggerProject;
 import com.holybuckets.traveler.menu.WeatheredBeaconMenu;
+import com.holybuckets.traveler.mixin.BeaconBlockEntityAccessor;
 import net.blay09.mods.balm.api.menu.BalmMenuProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -21,7 +22,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Field;
 
 public class WeatheredBeaconBlockEntity extends BeaconBlockEntity {
 
@@ -52,23 +52,21 @@ public class WeatheredBeaconBlockEntity extends BeaconBlockEntity {
 
             @Override
             public AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
-                ContainerData dataAccess;
+
                 try {
-                    Field beaconField = BeaconBlockEntity.class.getDeclaredField("dataAccess");
-                    beaconField.setAccessible(true);
-                    dataAccess = (ContainerData) beaconField.get(WeatheredBeaconBlockEntity.this);
+                    ContainerData dataAccess = ((BeaconBlockEntityAccessor) WeatheredBeaconBlockEntity.this).getDataAccess();
+                    Level level = WeatheredBeaconBlockEntity.this.level;
+                    BlockPos pos = WeatheredBeaconBlockEntity.this.getBlockPos();
+                    return new WeatheredBeaconMenu(syncId, playerInventory, dataAccess, ContainerLevelAccess.create(level, pos));
                 } catch (Exception e) {
-                    return null;
+                    throw new RuntimeException("Failed to access beacon dataAccess field", e);
                 }
-                Level level = WeatheredBeaconBlockEntity.this.level;
-                BlockPos pos = WeatheredBeaconBlockEntity.this.getBlockPos();
-                return new WeatheredBeaconMenu(syncId, playerInventory, dataAccess, ContainerLevelAccess.create(level, pos));
                 //return new BeaconMenu(syncId, playerInventory, dataAccess, ContainerLevelAccess.create(level, pos));
             }
 
             @Override
             public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
-                buf.writeBlockPos(worldPosition);
+
             }
         };
     }
