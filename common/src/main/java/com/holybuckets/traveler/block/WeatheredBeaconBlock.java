@@ -1,5 +1,6 @@
 package com.holybuckets.traveler.block;
 
+import com.holybuckets.traveler.LoggerProject;
 import com.holybuckets.traveler.block.be.WeatheredBeaconBlockEntity;
 import net.blay09.mods.balm.api.Balm;
 import net.minecraft.core.BlockPos;
@@ -44,17 +45,16 @@ public class WeatheredBeaconBlock extends BeaconBlock {
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos,
                                  Player player, InteractionHand hand, BlockHitResult hit) {
-        if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
+
+        if (!level.isClientSide()) {
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof WeatheredBeaconBlockEntity weatheredBeacon) {
+                Balm.getNetworking().openMenu(player, weatheredBeacon.getMenuProvider());
+                return InteractionResult.CONSUME;
+            }
         }
 
-        BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof WeatheredBeaconBlockEntity weatheredBeacon) {
-            Balm.getNetworking().openMenu(player, weatheredBeacon.getMenuProvider());
-            return InteractionResult.CONSUME;
-        }
-
-        return InteractionResult.PASS;
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     @Override

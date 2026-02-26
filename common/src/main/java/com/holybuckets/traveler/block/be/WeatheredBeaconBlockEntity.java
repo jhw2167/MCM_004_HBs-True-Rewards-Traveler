@@ -1,5 +1,6 @@
 package com.holybuckets.traveler.block.be;
 
+import com.holybuckets.traveler.LoggerProject;
 import com.holybuckets.traveler.menu.WeatheredBeaconMenu;
 import net.blay09.mods.balm.api.menu.BalmMenuProvider;
 import net.minecraft.core.BlockPos;
@@ -42,24 +43,6 @@ public class WeatheredBeaconBlockEntity extends BeaconBlockEntity {
         BeaconBlockEntity.tick(level, pos, state, blockEntity);
     }
 
-    @Nullable
-    @Override
-    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        ContainerData access;
-        try {
-            Field accessField =  BeaconBlockEntity.class.getDeclaredField("dataAccess");
-            accessField.setAccessible(true);
-            access = (ContainerData) accessField.get(this);
-        } catch (Exception e) {
-            return null;
-        }
-        if(access == null) return null;
-        return new WeatheredBeaconMenu(
-            containerId, playerInventory, access,
-            ContainerLevelAccess.create(this.level, this.getBlockPos())
-        );
-    }
-
     public BalmMenuProvider getMenuProvider() {
         return new BalmMenuProvider() {
             @Override
@@ -75,14 +58,12 @@ public class WeatheredBeaconBlockEntity extends BeaconBlockEntity {
                     beaconField.setAccessible(true);
                     dataAccess = (ContainerData) beaconField.get(WeatheredBeaconBlockEntity.this);
                 } catch (Exception e) {
-                    return  null;
+                    return null;
                 }
                 Level level = WeatheredBeaconBlockEntity.this.level;
                 BlockPos pos = WeatheredBeaconBlockEntity.this.getBlockPos();
-                return new WeatheredBeaconMenu(syncId, playerInventory,
-                    dataAccess, ContainerLevelAccess.create(level, pos)
-                );
-
+                return new WeatheredBeaconMenu(syncId, playerInventory, dataAccess, ContainerLevelAccess.create(level, pos));
+                //return new BeaconMenu(syncId, playerInventory, dataAccess, ContainerLevelAccess.create(level, pos));
             }
 
             @Override

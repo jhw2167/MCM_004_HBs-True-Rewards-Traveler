@@ -124,8 +124,8 @@ public class MobWardMenu extends AbstractContainerMenu {
     public void updateWardMessage()
     {
         // Read warded mob type from NBT
-        if (mobWardStack.hasTag() && mobWardStack.getTag().contains("WardedMobType")) {
-            String wardedMobType = mobWardStack.getTag().getString("WardedMobType");
+        if (mobWardStack.hasTag() && mobWardStack.getTag().contains("warded_mobs")) {
+            String wardedMobType = mobWardStack.getTag().getString("warded_mobs");
             if (!wardedMobType.isEmpty()) {
                 String displayName = formatMobName(wardedMobType);
                 this.wardMessage = Component.literal("Warding: " + displayName);
@@ -225,7 +225,7 @@ public class MobWardMenu extends AbstractContainerMenu {
             if (filterItem.isEmpty()) {
                 // Remove filter item
                 tag.remove("filterItem");
-                tag.remove("WardedMobType");
+                tag.remove("warded_mobs");
             } else {
                 // Save filter item
                 CompoundTag itemTag = new CompoundTag();
@@ -233,9 +233,14 @@ public class MobWardMenu extends AbstractContainerMenu {
                 tag.put("filterItem", itemTag);
 
                 // Also derive and save mob type
-                String mobType = getMobTypeFromItem(filterItem);
-                if (!mobType.isEmpty()) {
-                    tag.putString("WardedMobType", mobType);
+                String mobTypes = getMobTypeFromItem(filterItem);
+                String[] split = mobTypes.split(", ");
+                if(split.length > 3) {
+                    String more = (split.length - 3) + " more";
+                    mobTypes = split[0]+", " + split[1]+", " + split[2] + ".." + more;
+                }
+                if (!mobTypes.isEmpty()) {
+                    tag.putString("warded_mobs", mobTypes);
                 }
             }
         }

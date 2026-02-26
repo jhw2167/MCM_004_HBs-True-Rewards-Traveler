@@ -8,6 +8,7 @@ import com.holybuckets.traveler.config.TravelerRewardsConfig;
 import com.holybuckets.traveler.core.ManagedTraveler;
 import com.holybuckets.traveler.core.AnvilRecipeManager;
 import com.holybuckets.traveler.item.ModItems;
+import com.holybuckets.traveler.menu.ModMenus;
 import net.blay09.mods.balm.api.Balm;
 import net.blay09.mods.balm.api.event.EventPriority;
 import net.blay09.mods.balm.api.event.LevelLoadingEvent;
@@ -52,6 +53,7 @@ public class TravelerRewardsMain {
         EventRegistrar registrar = EventRegistrar.getInstance();
         //ChallengeBlockBehavior.init(registrar);
         registrar.registerOnLevelLoad(this::onLevelLoad, EventPriority.Lowest);
+        ModMenus.init(registrar);
         ModConfig.init(registrar);
         ManagedTraveler.init(registrar);
         ModItems.init(registrar);

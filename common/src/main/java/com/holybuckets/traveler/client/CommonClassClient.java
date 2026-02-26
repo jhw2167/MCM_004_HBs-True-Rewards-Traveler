@@ -8,6 +8,7 @@ import com.holybuckets.foundation.player.ManagedPlayer;
 import com.holybuckets.foundation.structure.StructureManager;
 import com.holybuckets.traveler.client.screen.ModScreens;
 import com.holybuckets.traveler.core.ManagedTraveler;
+import com.holybuckets.traveler.menu.ModMenus;
 import net.blay09.mods.balm.api.client.BalmClient;
 import net.blay09.mods.balm.api.event.EventPriority;
 import net.blay09.mods.balm.api.event.client.BlockHighlightDrawEvent;
@@ -23,7 +24,6 @@ public class CommonClassClient {
         initClientEvents();
         initRenderers();
         //testRenderers();
-
         ModScreens.initialize(BalmClient.getScreens());
     }
 

@@ -2,9 +2,14 @@
 package com.holybuckets.traveler.client.screen;
 
 import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.holybuckets.foundation.HBUtil;
 import com.holybuckets.foundation.networking.SimpleStringMessage;
 import com.holybuckets.traveler.Constants;
+import com.holybuckets.traveler.LoggerProject;
 import com.holybuckets.traveler.block.be.WeatheredBeaconBlockEntity;
+import com.holybuckets.traveler.menu.ModMenus;
 import com.holybuckets.traveler.menu.WeatheredBeaconMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -78,7 +83,8 @@ public class WeatheredBeaconScreen extends AbstractContainerScreen<WeatheredBeac
         this.beaconButtons.clear();
 
         // Add confirm button (no cancel button for weathered beacon)
-        this.addWeatheredBeaconButton(new ConfirmButton(this.leftPos + 164, this.topPos + 107));
+        this.addWeatheredBeaconButton(new ConfirmButton(this.leftPos + 162, this.topPos + 107));
+        this.addWeatheredBeaconButton(new CancelButton(this.leftPos + 190, this.topPos + 107));
 
         // Add all effect buttons - 3 tiers, all available at level 2+
         for (int tier = 0; tier <= 2; ++tier) {
@@ -202,8 +208,16 @@ public class WeatheredBeaconScreen extends AbstractContainerScreen<WeatheredBeac
 
         @Override
         public void onPress() {
-            WeatheredBeaconScreen.this.minecraft.getConnection().send(new ServerboundSetBeaconPacket(Optional.ofNullable(WeatheredBeaconScreen.this.primary), Optional.empty()));
-            WeatheredBeaconScreen.this.minecraft.player.closeContainer();
+            JsonObject json = new JsonObject();
+            json.addProperty("effectId", MobEffect.getId(WeatheredBeaconScreen.this.primary));
+            json.addProperty("playerId", HBUtil.PlayerUtil.getId(Minecraft.getInstance().player));
+
+            SimpleStringMessage.createAndFire(
+                Minecraft.getInstance().player,
+                ModMenus.MSG_ID_SET_EFFECT,
+                new Gson().toJson(json)
+            );
+            //WeatheredBeaconScreen.this.minecraft.player.closeContainer();
         }
 
         @Override
@@ -211,6 +225,40 @@ public class WeatheredBeaconScreen extends AbstractContainerScreen<WeatheredBeac
             // Active only if there's a payment item and an effect is selected
             this.active = WeatheredBeaconScreen.this.menu.hasPayment() &&
                 WeatheredBeaconScreen.this.primary != null;
+        }
+    }
+
+
+
+    // Cancel
+    private class CancelButton extends WeatheredBeaconScreenButton {
+        public CancelButton(int x, int y) {
+            super(x, y, CommonComponents.GUI_NO);
+        }
+
+        @Override
+        protected void renderIcon(GuiGraphics graphics) {
+            graphics.blit(WEATHERED_BEACON_LOCATION, this.getX() + 2, this.getY() + 2, 112, 220, 18, 18);
+        }
+
+        @Override
+        public void onPress() {
+            JsonObject json = new JsonObject();
+            json.addProperty("effectId", -1);
+            json.addProperty("playerId", HBUtil.PlayerUtil.getId(Minecraft.getInstance().player));
+
+            SimpleStringMessage.createAndFire(
+                Minecraft.getInstance().player,
+                ModMenus.MSG_ID_SET_EFFECT,
+                new Gson().toJson(json)
+            );
+            WeatheredBeaconScreen.this.primary = null;
+            //WeatheredBeaconScreen.this.minecraft.player.closeContainer();
+        }
+
+        @Override
+        public void updateStatus(int pyramidLevel) {
+            this.active = WeatheredBeaconScreen.this.primary != null;
         }
     }
 
