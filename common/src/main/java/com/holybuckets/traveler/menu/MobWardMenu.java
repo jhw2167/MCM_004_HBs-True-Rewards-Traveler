@@ -235,8 +235,8 @@ public class MobWardMenu extends AbstractContainerMenu {
                 // Also derive and save mob type
                 String mobTypes = getMobTypeFromItem(filterItem);
                 String[] split = mobTypes.split(", ");
-                if(split.length > 3) {
-                    String more = (split.length - 3) + " more";
+                if(split.length > 2) {
+                    String more = (split.length - 2) + " more";
                     mobTypes = split[0]+", " + split[1]+", " + split[2] + ".." + more;
                 }
                 if (!mobTypes.isEmpty()) {

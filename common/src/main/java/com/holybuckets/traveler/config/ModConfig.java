@@ -23,7 +23,6 @@ import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 public class ModConfig {
@@ -40,7 +39,7 @@ public class ModConfig {
     private static final Map<ResourceLocation, List<LootPool>> mobLootTables = new HashMap<>();
 
     public static final int[] LASTING_TICKS = new int[] {
-        300,
+        3000,
         6000,   // Level 1 - 5 minutes
         12000,  // Level 2 - 10 minutes
         24000,  // Level 3 - keep doubling

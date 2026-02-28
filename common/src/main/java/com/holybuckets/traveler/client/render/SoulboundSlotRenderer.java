@@ -80,22 +80,20 @@ public class SoulboundSlotRenderer {
         int hotbarStartX = (screenWidth / 2) - (hotbarWidth / 2);
         int hotbarY = screenHeight - HOTBAR_Y_OFFSET;
 
-        // Get currently selected hotbar slot from player
         int selectedHotbarIndex = traveler.getCurrentlySelectedHotbarIndex();
 
-        // Render indicator for each soulbound hotbar slot
         for (int hotbarSlot = 0; hotbarSlot < HOTBAR_SLOTS; hotbarSlot++) {
-            // Hotbar slots are indices 0-8 in player inventory
             if (soulboundSlots.contains(hotbarSlot)) {
-                int slotX = hotbarStartX + (hotbarSlot * 20) + 3; // 20px spacing, 3px offset for slot centering
-                int slotY = hotbarY + 3; // 3px offset for slot centering
+                int slotX = hotbarStartX + (hotbarSlot * 20) + 3;
+                int slotY = hotbarY + 3;
 
-                // Reduce thickness if this slot is currently selected by mouse wheel
                 boolean isSelected = (hotbarSlot == selectedHotbarIndex);
                 int thickness = isSelected ? BORDER_THICKNESS_SELECTED : BORDER_THICKNESS;
 
-                // Always use pulsating effect for hotbar (looks better in-game)
-                drawPulsatingBorder(graphics, slotX, slotY, thickness);
+                boolean suppressRightBorder = soulboundSlots.contains(hotbarSlot) && (hotbarSlot + 1 == selectedHotbarIndex);
+                boolean suppressLeftBorder  = soulboundSlots.contains(hotbarSlot) && (hotbarSlot - 1 == selectedHotbarIndex);
+
+                drawPulsatingBorder(graphics, slotX, slotY, thickness, suppressLeftBorder, suppressRightBorder);
             }
         }
     }
@@ -144,16 +142,12 @@ public class SoulboundSlotRenderer {
                     // Determine thickness based on hover state
                     int thickness = isHovering ? BORDER_THICKNESS_HOVER : BORDER_THICKNESS;
 
-                    // Draw border based on settings
                     if (USE_SIMPLE_BLACK_BORDER) {
-                        // Simple black border
-                        drawSimpleBorder(graphics, slot.x, slot.y, thickness, BORDER_COLOR_BLACK);
+                        drawSimpleBorder(graphics, slot.x, slot.y, thickness, BORDER_COLOR_BLACK, false, false);
                     } else if (ENABLE_PULSATING_INVENTORY) {
-                        // Pulsating purple border
-                        drawPulsatingBorder(graphics, slot.x, slot.y, thickness);
+                        drawPulsatingBorder(graphics, slot.x, slot.y, thickness, false, false);
                     } else {
-                        // Static purple border (no pulsating)
-                        drawSimpleBorder(graphics, slot.x, slot.y, thickness, PULSE_COLOR_BRIGHT);
+                        drawSimpleBorder(graphics, slot.x, slot.y, thickness, PULSE_COLOR_BRIGHT, false, false);
                     }
                 }
             }
@@ -168,20 +162,16 @@ public class SoulboundSlotRenderer {
      * @param y Slot Y position (top-left corner)
      * @param thickness Border thickness in pixels
      */
-    private static void drawPulsatingBorder(GuiGraphics graphics, int x, int y, int thickness) {
-        // Calculate pulse value (0.0 to 1.0) based on current time
+    private static void drawPulsatingBorder(GuiGraphics graphics, int x, int y, int thickness,
+                                            boolean suppressLeftBorder, boolean suppressRightBorder) {
         long currentTime = System.currentTimeMillis();
         float pulseProgress = (currentTime % (long)PULSE_SPEED) / PULSE_SPEED;
-        float pulse = (float) Math.sin(pulseProgress * Math.PI * 2.0) * 0.5f + 0.5f; // Smooth sine wave
+        float pulse = (float) Math.sin(pulseProgress * Math.PI * 2.0) * 0.5f + 0.5f;
 
-        // Map pulse to configured alpha range
         float alpha = PULSE_MIN_ALPHA + (pulse * (PULSE_MAX_ALPHA - PULSE_MIN_ALPHA));
-
-        // Interpolate between dark and bright purple
         int color = interpolateColor(PULSE_COLOR_DARK, PULSE_COLOR_BRIGHT, alpha);
 
-        // Draw the border
-        drawSimpleBorder(graphics, x, y, thickness, color);
+        drawSimpleBorder(graphics, x, y, thickness, color, suppressLeftBorder, suppressRightBorder);
     }
 
     /**
@@ -193,20 +183,21 @@ public class SoulboundSlotRenderer {
      * @param thickness Border thickness in pixels
      * @param color Border color (ARGB format)
      */
-    private static void drawSimpleBorder(GuiGraphics graphics, int x, int y, int thickness, int color) {
-        int z = 300; // Z-level to render on top of slots but below tooltips
+    private static void drawSimpleBorder(GuiGraphics graphics, int x, int y, int thickness, int color,
+                                         boolean suppressLeftBorder, boolean suppressRightBorder) {
+        int z = 300;
 
         // Top border
         graphics.fill(x - thickness, y - thickness, x + SLOT_SIZE + thickness, y, z, color);
-
         // Bottom border
         graphics.fill(x - thickness, y + SLOT_SIZE, x + SLOT_SIZE + thickness, y + SLOT_SIZE + thickness, z, color);
 
-        // Left border
-        graphics.fill(x - thickness, y, x, y + SLOT_SIZE, z, color);
-
-        // Right border
-        graphics.fill(x + SLOT_SIZE, y, x + SLOT_SIZE + thickness, y + SLOT_SIZE, z, color);
+        if (!suppressLeftBorder) {
+            graphics.fill(x - thickness, y, x, y + SLOT_SIZE, z, color);
+        }
+        if (!suppressRightBorder) {
+            graphics.fill(x + SLOT_SIZE, y, x + SLOT_SIZE + thickness, y + SLOT_SIZE, z, color);
+        }
     }
 
     /**
@@ -273,35 +264,6 @@ public class SoulboundSlotRenderer {
         return slot.getContainerSlot();
     }
 
-    /**
-     * Alternative rendering method using slot index directly
-     * Useful when you know the slot index but not the screen position
-     *
-     * @param graphics  GuiGraphics for rendering
-     * @param screen    The inventory screen
-     * @param slotIndex The player inventory slot index (0-40)
-     * @param isHovering Whether the slot is being hovered
-     */
-    public static void renderSoulboundIndicatorByIndex(GuiGraphics graphics, AbstractContainerScreen<?> screen, int slotIndex, boolean isHovering) {
-        Player player = Minecraft.getInstance().player;
-        if (player == null) return;
-
-        // Find the slot with this index
-        for (Slot slot : screen.getMenu().slots) {
-            if (isPlayerInventorySlot(slot, player) && getPlayerSlotIndex(slot, player) == slotIndex) {
-                int thickness = isHovering ? BORDER_THICKNESS_HOVER : BORDER_THICKNESS;
-
-                if (USE_SIMPLE_BLACK_BORDER) {
-                    drawSimpleBorder(graphics, slot.x, slot.y, thickness, BORDER_COLOR_BLACK);
-                } else if (ENABLE_PULSATING_INVENTORY) {
-                    drawPulsatingBorder(graphics, slot.x, slot.y, thickness);
-                } else {
-                    drawSimpleBorder(graphics, slot.x, slot.y, thickness, PULSE_COLOR_BRIGHT);
-                }
-                return;
-            }
-        }
-    }
 
 }
 //END CLASS

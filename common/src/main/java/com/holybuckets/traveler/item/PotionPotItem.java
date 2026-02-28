@@ -26,7 +26,7 @@ public class PotionPotItem extends InteractiveRewardItem {
     private static final Random RANDOM = new Random();
 
     public PotionPotItem() {
-        super("potion_pot", false, 16); // Does not consume on use
+        super("potion_pot", false, 1); // Does not consume on use
     }
 
     @Override
@@ -52,14 +52,25 @@ public class PotionPotItem extends InteractiveRewardItem {
      * Opens the Potion Pot brewing menu
      */
     private void openPotionPotMenu(ServerPlayer player, ItemStack potionPotStack) {
-        // Get or generate awkward potion count
+        ItemStack singleStack;
+        if (potionPotStack.getCount() > 1) {
+            singleStack = potionPotStack.split(1);
+            if (potionPotStack.isEmpty()) {
+                player.getInventory().setItem(player.getInventory().selected, ItemStack.EMPTY);
+            }
+            player.getInventory().add(potionPotStack); // re-add remainder
+        } else {
+            singleStack = potionPotStack;
+        }
+
         int awkwardPotionCount;
-        if (potionPotStack.hasTag() && potionPotStack.getTag().contains("awkward_potion_count")) {
-            awkwardPotionCount = potionPotStack.getTag().getInt("awkward_potion_count");
+        if (singleStack.hasTag() && singleStack.getTag().contains("awkward_potion_count")) {
+            awkwardPotionCount = singleStack.getTag().getInt("awkward_potion_count");
         } else {
             awkwardPotionCount = RANDOM.nextInt(3) + 1;
         }
 
+        final ItemStack menuStack = singleStack;
         player.openMenu(new MenuProvider() {
             @Override
             public Component getDisplayName() {
@@ -69,7 +80,7 @@ public class PotionPotItem extends InteractiveRewardItem {
             @Override
             public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
                 Container brewingContainer = new SimpleContainer(5);
-                return new PotionPotMenu(containerId, playerInventory, potionPotStack, brewingContainer, awkwardPotionCount);
+                return new PotionPotMenu(containerId, playerInventory, menuStack, brewingContainer, awkwardPotionCount);
             }
         });
     }

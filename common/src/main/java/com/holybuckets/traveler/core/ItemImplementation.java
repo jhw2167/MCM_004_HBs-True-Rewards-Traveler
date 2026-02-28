@@ -115,7 +115,8 @@ public class ItemImplementation {
     }
 
 
-    private static final int[] offsets = {-48, -32, -16, 16, 32, 48};
+    private static final int[] ESCAPE_OFFSETS = {-48, -32, -16, 16, 32, 48};
+    private static final int[] ESCAPE_PARTIAL_OFFSETS = {-16, -8, -4, -1, 1, 4, 8, 16};
     /**
      * Finds the surface directly above the player's current position
      * @return BlockPos at surface level, or null if not found
@@ -135,8 +136,10 @@ public class ItemImplementation {
         int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
         BlockPos bestPos = new BlockPos(x, surfaceY, z);
         int highestY = Integer.MIN_VALUE;
-        for (int dx : offsets) {
-            for (int dz : offsets) {
+        for (int dx : ESCAPE_OFFSETS)
+        {
+            for (int dz : ESCAPE_OFFSETS)
+            {
                  x = playerPos.getX() + dx;
                  z = playerPos.getZ() + dz;
 
@@ -154,7 +157,34 @@ public class ItemImplementation {
             }
         }
 
+        // Search partial offsets for a position with a valid landing spot
+        for (int dx : ESCAPE_PARTIAL_OFFSETS)
+        {
+            for (int dz : ESCAPE_PARTIAL_OFFSETS)
+            {
+                x = playerPos.getX() + dx;
+                z = playerPos.getZ() + dz;
+                int sy = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+                BlockPos candidate = new BlockPos(x, sy, z);
+
+                if (level.getBlockState(candidate).isAir() &&
+                    level.getBlockState(candidate.above()).isAir() &&
+                    hasLandingSpot(level, candidate)) {
+                    return candidate;
+                }
+            }
+        }
+
         return bestPos; // null if no valid spot found
+    }
+
+    private boolean hasLandingSpot(Level level, BlockPos pos) {
+        BlockPos oneBelowPos = pos.below();
+        BlockPos twoBelowPos = pos.below(4);
+        BlockPos threeBelowPos = pos.below(8);
+        return !level.getBlockState(oneBelowPos).isAir()
+         || !level.getBlockState(twoBelowPos).isAir()
+            || !level.getBlockState(threeBelowPos).isAir();
     }
 
     void onUseEscapeRope(Player player, BlockPos structureEntryPos)
