@@ -1,0 +1,75 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hbs_traveler_rewards:enchanted_essence"
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 0.0,
+        "max": 0.075
+      }
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hbs_traveler_rewards:escape_charm"
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 0.0,
+        "max": 0.025
+      }
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hbs_traveler_rewards:potion_pot"
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 0.0,
+        "max": 0.075
+      }
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hbs_traveler_rewards:diamond_shard"
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 0.0,
+        "max": 0.125
+      }
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hbs_traveler_rewards:gold_facade_block"
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 0.0,
+        "max": 0.08
+      }
+    }
+  ]
+}

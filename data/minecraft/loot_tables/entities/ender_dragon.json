@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:entity",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hbs_traveler_rewards:soulbound_ritual_tablet"
+        }
+      ],
+      "rolls": 1.0,
+      "conditions": []
+    }
+  ]
+}

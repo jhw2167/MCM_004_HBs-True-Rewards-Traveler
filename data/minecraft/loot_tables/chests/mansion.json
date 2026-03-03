@@ -1,0 +1,47 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hbs_traveler_rewards:empty_totem"
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 0.0,
+        "max": 0.125
+      }
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hbs_traveler_rewards:weathered_beacon"
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 0.0,
+        "max": 0.075
+      }
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hbs_traveler_rewards:emerald_facade_block"
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 0.0,
+        "max": 0.03
+      }
+    }
+  ]
+}

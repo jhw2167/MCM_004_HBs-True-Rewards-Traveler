@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:archaeology",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hbs_traveler_rewards:escape_charm"
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 0.0,
+        "max": 0.04
+      }
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hbs_traveler_rewards:empty_totem"
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 0.0,
+        "max": 0.025
+      }
+    }
+  ]
+}
