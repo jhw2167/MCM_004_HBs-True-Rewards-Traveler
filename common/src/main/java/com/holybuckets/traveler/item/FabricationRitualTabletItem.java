@@ -32,6 +32,12 @@ public class FabricationRitualTabletItem extends InteractiveRewardItem {
     @Override
     protected InteractionResult onRightClickBlock(UseOnContext context)
     {
+        // Check if the tablet item is actually in the interaction hand
+        ItemStack handStack = context.getPlayer().getItemInHand(context.getHand());
+        if (!handStack.is(this)) {
+            return InteractionResult.FAIL;
+        }
+        
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
 
