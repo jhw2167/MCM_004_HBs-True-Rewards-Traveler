@@ -1,5 +1,6 @@
 package com.holybuckets.traveler.core;
 
+import com.holybuckets.foundation.CommonClass;
 import com.holybuckets.foundation.GeneralConfig;
 import com.holybuckets.foundation.HBUtil;
 import com.holybuckets.foundation.LoggerBase;
@@ -12,6 +13,7 @@ import com.holybuckets.foundation.player.ManagedPlayer;
 import com.holybuckets.foundation.structure.StructureAPI;
 import com.holybuckets.foundation.structure.StructureInfo;
 import com.holybuckets.foundation.structure.StructureManager;
+import com.holybuckets.traveler.TravelerRewardsMain;
 import com.holybuckets.traveler.enchantment.ModEnchantments;
 import com.holybuckets.traveler.item.ModItems;
 import io.netty.util.collection.IntObjectHashMap;
@@ -31,6 +33,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -110,16 +114,20 @@ public class ManagedTraveler implements IManagedPlayer {
      * Initialize event handlers
      */
     public static void init(EventRegistrar reg) {
+        GENERAL_CONFIG = GeneralConfig.getInstance();
         reg.registerOnBeforeServerStarted( ManagedTraveler::onBeforeServerStarted, EventPriority.Lowest );
         reg.registerOnPlayerNearStructure(null, ManagedTraveler::onPlayerNearStructure);
         reg.registerOnServerTick(TickType.ON_SINGLE_TICK, ManagedTraveler::onServerTicks);
         reg.registerOnTossItem(ManagedTraveler::onPlayerTossItem);
     }
 
-    public static void useSoulboundTablet(ServerPlayer serverPlayer, InteractionHand hand, ItemStack stack) {
+    public static void useSoulboundTablet(ServerPlayer serverPlayer, InteractionHand hand, ItemStack stack)
+    {
         ManagedTraveler traveler = ManagedTraveler.getManagedTraveler(serverPlayer);
         if(traveler == null) return;
-        traveler.addSoulboundSlot(hand, stack);
+        boolean res = traveler.addSoulboundSlot(hand, stack);
+        if(res) stack.shrink(1);
+        getManagedPlayer(serverPlayer).save();
     }
 
     public static void usePureHeart(ServerPlayer serverPlayer) {
@@ -138,17 +146,25 @@ public class ManagedTraveler implements IManagedPlayer {
 
     //** SOULBOUND SLOT MANAGEMENT
 
+    public static final int OFFHAND_SLOT_INDEX = 40;
     /**
      * Marks a slot as soulbound (items in this slot survive death)
      */
-    private void addSoulboundSlot(InteractionHand hand, ItemStack stack)
+    private boolean addSoulboundSlot(InteractionHand hand, ItemStack stack)
     {
-        //1. Parse inventory for slot that matches this stack
-        Inventory inventory = player.getInventory();
-        int slot = inventory.findSlotMatchingItem(stack);
-        if(slot == -1) return;
+        int slot = getCurrentlySelectedHotbarIndex();
+        if(slot == -1) return false;
+        if(hand.equals(InteractionHand.MAIN_HAND)) {
+            if(!player.getMainHandItem().is(ModItems.soulboundRitualTablet))
+                return false;
+        }
+        else {
+            if(!player.getOffhandItem().is(ModItems.soulboundRitualTablet))
+                return false;
+            slot = OFFHAND_SLOT_INDEX;
+        }
+
         int slotToSoulbound = slot;
-        //2. Check if the slot is already soulbound
         boolean isSoulbound = soulboundSlots.contains(slot);
         boolean isMainHand = hand.equals(InteractionHand.MAIN_HAND);
         if(!isSoulbound) {
@@ -156,7 +172,8 @@ public class ManagedTraveler implements IManagedPlayer {
         }
         else if (isSoulbound && isMainHand) //Inventory slot becomes soulbound
         {
-            for (int i = 9; i < 36; i++) {
+            for (int i = 9; i < 37; i++) {
+                if(i==36) return false;   //inventory slots exhausted
                 if (!soulboundSlots.contains(i)) {
                     slotToSoulbound = i;
                     break;
@@ -166,7 +183,8 @@ public class ManagedTraveler implements IManagedPlayer {
         else if(isSoulbound && !isMainHand) //Offhand becomes soulbound, the armor
         {
             //internally, 36= offhand, 37 = helmet...chest, leg, boots = 40
-            for (int i = 36; i < 41; i++) {
+            for (int i = OFFHAND_SLOT_INDEX; i>=35; i--) {
+                if(i==35) return false;   //armor soulbound slots exhausted
                 if (!soulboundSlots.contains(i)) {
                     slotToSoulbound = i;
                     break;
@@ -175,6 +193,7 @@ public class ManagedTraveler implements IManagedPlayer {
         }
 
         soulboundSlots.add(slotToSoulbound);
+        return true;
     }
 
     /**
@@ -321,17 +340,17 @@ public class ManagedTraveler implements IManagedPlayer {
                 TRAVELERS.remove(getId(this.player));
             this.player = player;
             this.managedPlayer = ManagedPlayer.getManagedPlayer(player);
+            if(GENERAL_CONFIG.isIntegrated())
+                localTraveler = this;
+
+            TRAVELERS.put(getId(player), this);
         }
         else    //clientPlayer client side only
         {
-
+            this.localPlayer = player;
+            if(!GENERAL_CONFIG.isServerSide())
+                localTraveler = this;
         }
-        if(localPlayer!=null)
-            TRAVELERS.remove(getId(localPlayer));
-        if(ManagedPlayer.CLIENT_PLAYER!=null)
-            this.localPlayer = ManagedPlayer.CLIENT_PLAYER.getPlayer();
-        this.localTraveler = this;
-        TRAVELERS.put(getId(player), this);
     }
 
     @Override
@@ -358,8 +377,11 @@ public class ManagedTraveler implements IManagedPlayer {
     }
 
     public int getCurrentlySelectedHotbarIndex() {
-        if (player == null) return -1;
-        return player.getInventory().selected;
+        if (player != null)
+            return player.getInventory().selected;
+        if(localPlayer != null)
+            return localPlayer.getInventory().selected;
+        throw new RuntimeException("Player reference is null in getCurrentlySelectedHotbarIndex");
     }
 
 
@@ -444,9 +466,9 @@ public class ManagedTraveler implements IManagedPlayer {
         // Restore soulbound items after respawn
         if (player instanceof ServerPlayer serverPlayer) {
             restoreSoulboundItems();
+            this.lastWarriorRitual = -1;                //reset ritual bonus on respawn
+            this.setHealth(this.pureHeartsConsumed);    //set full health again on spawn
         }
-        this.lastWarriorRitual = -1;                //reset ritual bonus on respawn
-        this.setHealth(this.pureHeartsConsumed);    //set full health again on spawn
     }
 
     @Override
@@ -462,6 +484,10 @@ public class ManagedTraveler implements IManagedPlayer {
         );
 
         // Handle soulbound slots - prevent items from dropping
+        if(this.player==null) return;
+        Level level = player.level();
+        if( level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) ) return;
+        if(!TravelerRewardsMain.CONFIG.simpleRewards.enableSoulboundSlots) return;
         if (!soulboundSlots.isEmpty()) {
             Inventory inventory = player.getInventory();
             for (int slotIndex : soulboundSlots) {

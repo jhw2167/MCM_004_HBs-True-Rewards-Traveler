@@ -96,6 +96,12 @@ public class SoulboundSlotRenderer {
                 drawPulsatingBorder(graphics, slotX, slotY, thickness, suppressLeftBorder, suppressRightBorder);
             }
         }
+
+        if (soulboundSlots.contains(40) && !player.getOffhandItem().isEmpty()) {
+            int offhandX = hotbarStartX - 26;  // 29px left of hotbar start
+            int offhandY = hotbarY + 3;
+            drawPulsatingBorder(graphics, offhandX, offhandY, BORDER_THICKNESS, false, false);
+        }
     }
 
     /**
@@ -126,21 +132,12 @@ public class SoulboundSlotRenderer {
 
         // Iterate through all slots in the screen and check if they're soulbound
         for (Slot slot : screen.getMenu().slots) {
-            // Check if this slot belongs to the player's inventory
-            if (isPlayerInventorySlot(slot, player)) {
+            if (isPlayerInventorySlot(slot, player))
+            {
                 int slotIndex = getPlayerSlotIndex(slot, player);
 
                 if (soulboundSlots.contains(slotIndex)) {
-                    // Calculate absolute slot position on screen
-                    int slotScreenX = screen.width + slot.x;
-                    int slotScreenY = screen.height + slot.y;
-
-                    // Check if mouse is hovering over this slot
-                    boolean isHovering = mouseX >= slotScreenX && mouseX < slotScreenX + SLOT_SIZE &&
-                        mouseY >= slotScreenY && mouseY < slotScreenY + SLOT_SIZE;
-
-                    // Determine thickness based on hover state
-                    int thickness = isHovering ? BORDER_THICKNESS_HOVER : BORDER_THICKNESS;
+                    int thickness = BORDER_THICKNESS;
 
                     if (USE_SIMPLE_BLACK_BORDER) {
                         drawSimpleBorder(graphics, slot.x, slot.y, thickness, BORDER_COLOR_BLACK, false, false);
@@ -187,10 +184,11 @@ public class SoulboundSlotRenderer {
                                          boolean suppressLeftBorder, boolean suppressRightBorder) {
         int z = 300;
 
-        // Top border
-        graphics.fill(x - thickness, y - thickness, x + SLOT_SIZE + thickness, y, z, color);
-        // Bottom border
-        graphics.fill(x - thickness, y + SLOT_SIZE, x + SLOT_SIZE + thickness, y + SLOT_SIZE + thickness, z, color);
+        int topBottomLeft  = suppressLeftBorder  ? x : x - thickness;
+        int topBottomRight = suppressRightBorder ? x + SLOT_SIZE : x + SLOT_SIZE + thickness;
+
+        graphics.fill(topBottomLeft, y - thickness, topBottomRight, y, z, color);
+        graphics.fill(topBottomLeft, y + SLOT_SIZE, topBottomRight, y + SLOT_SIZE + thickness, z, color);
 
         if (!suppressLeftBorder) {
             graphics.fill(x - thickness, y, x, y + SLOT_SIZE, z, color);

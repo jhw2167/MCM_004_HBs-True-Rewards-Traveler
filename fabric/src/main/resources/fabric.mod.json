@@ -5,10 +5,11 @@
     "name": "${mod_name}",
     "description": "${description}",
     "authors": [
-        "${mod_author}"
+        "${mod_author}",
+        "Cebularz"
     ],
     "contact": {
-        "homepage": "https://fabricmc.net/",
+        "homepage": "https://discord.gg/dp9d4wymNv",
         "sources": "https://github.com/FabricMC/fabric-example-mod"
     },
     "license": "${license}",
@@ -35,7 +36,6 @@
         "hbs_foundation": ">=${foundation_version}"
     },
     "suggests": {
-        "artifacts": ">=${artifacts_version}",
         "another-mod": "*"
     }
 }

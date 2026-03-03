@@ -27,6 +27,9 @@ public class TravelerRewardsConfig {
             /*basalt, blackstone, endstone*/ "minecraft:basalt", "minecraft:blackstone", "minecraft:end_stone", "minecraft:prismarine",
             "minecraft:clay", "minecraft:terracotta", "minecraft:packed_mud"));
 
+        @Comment("While true, when the player dies any item in a player's inventory in a soulbound slot the item is removed from the player on death and returned to them on respawn")
+        public boolean enableSoulboundSlots = true;
+
     }
 
     public static class AnvilRewardsConfig {

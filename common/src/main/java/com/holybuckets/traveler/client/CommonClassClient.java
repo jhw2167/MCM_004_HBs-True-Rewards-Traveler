@@ -36,20 +36,6 @@ public class CommonClassClient {
         ClientBalmEventRegister.registerEvents();
     }
 
-    public static void initManagedPlayer(ClientEventRegistrar reg) {
-    reg.registerOnConnectedToServer( e -> ManagedPlayer.onClientConnectedToServer(
-        Minecraft.getInstance().player), EventPriority.Highest);
-    }
-
-    public static void initStructureManager(ClientEventRegistrar reg) {
-        reg.registerOnClientTick(TickType.ON_120_TICKS ,
-             e -> StructureManager.fireSyncClientStructureCountsToServer(Minecraft.getInstance().player));
-             /*
-        reg.registerOnConnectedToServer(
-             e -> StructureManager.onConnectedToServer(Minecraft.getInstance().player));
-        StructureManager.clientInit();
-              */
-    }
 
     private static void initRenderers() {
         ModRenderers.clientInitialize(BalmClient.getRenderers());

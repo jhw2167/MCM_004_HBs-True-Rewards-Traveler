@@ -27,7 +27,7 @@ public class SoulboundRitualTabletItem extends InteractiveRewardItem {
         // Check if the tablet item is actually in the interaction hand
         ItemStack handStack = player.getItemInHand(hand);
         if (!handStack.is(this)) {
-            return InteractionResult.FAIL;
+            return InteractionResult.PASS;
         }
         
         if (player instanceof ServerPlayer serverPlayer) {

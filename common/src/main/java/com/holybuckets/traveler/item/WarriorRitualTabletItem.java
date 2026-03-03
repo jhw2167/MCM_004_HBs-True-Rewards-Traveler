@@ -21,11 +21,12 @@ public class WarriorRitualTabletItem extends InteractiveRewardItem {
     }
 
     @Override
-    protected InteractionResult onRightClickAir(Level level, Player player, InteractionHand hand, ItemStack stack) {
-        // Check if the tablet item is actually in the interaction hand
+    protected InteractionResult onRightClickAir(Level level, Player player, InteractionHand hand, ItemStack stack)
+    {
+
         ItemStack handStack = player.getItemInHand(hand);
         if (!handStack.is(this)) {
-            return InteractionResult.FAIL;
+            return InteractionResult.PASS;
         }
         
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {

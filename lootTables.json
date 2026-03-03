@@ -1,0 +1,238 @@
+{
+  "_comment": "HB's Traveler Rewards — Loot Table Data. All percentages are halved from design notes. Mob drops are per-kill rates. Structure drops are per-chest rates.",
+  "loot_tables": [
+    {
+      "item": "quarter_heart",
+      "structures": [
+        { "id": "jungle_pyramid",     "chance": 0.025 },
+        { "id": "desert_pyramid",     "chance": 0.025 },
+        { "id": "monster_room",       "chance": 0.025 }
+      ],
+      "mob_drops": [],
+      "archaeology": [],
+      "notes": "Early game reward for exploring ancient overworld structures."
+    },
+    {
+      "item": "half_heart",
+      "structures": [
+        { "id": "jungle_pyramid",     "chance": 0.01 },
+        { "id": "desert_pyramid",     "chance": 0.01 },
+        { "id": "monument",           "chance": 0.025 },
+        { "id": "bastion_remnant",    "chance": 0.025 }
+      ],
+      "mob_drops": [],
+      "archaeology": [],
+      "notes": "Rare upgrade, only found in more dangerous or mid-game structures."
+    },
+    {
+      "item": "whetstone",
+      "structures": [
+        { "id": "village",            "chance": 0.025 },
+        { "id": "mineshaft",          "chance": 0.05 }
+      ],
+      "mob_drops": [],
+      "archaeology": [],
+      "notes": "Crafting-adjacent item. Village chest is the blacksmith specifically."
+    },
+    {
+      "item": "bracing",
+      "structures": [
+        { "id": "village",            "chance": 0.025 },
+        { "id": "mineshaft",          "chance": 0.05 }
+      ],
+      "mob_drops": [],
+      "archaeology": [],
+      "notes": "Crafting-adjacent item. Village chest is the blacksmith specifically."
+    },
+    {
+      "item": "enchanted_essence",
+      "structures": [
+        { "id": "desert_pyramid",     "chance": 0.10 },
+        { "id": "jungle_pyramid",     "chance": 0.10 },
+        { "id": "monument",           "chance": 0.10,  "variant_note": "aquatic enchant target" },
+        { "id": "mineshaft",          "chance": 0.075 },
+        { "id": "bastion_remnant",    "chance": 0.075 },
+        { "id": "fortress",           "chance": 0.075 },
+        { "id": "end_city",           "chance": 0.10 },
+        { "id": "ancient_city",       "chance": 0.10 }
+      ],
+      "mob_drops": [
+        { "entity": "witch",          "chance": 0.05,  "note": "pre-enchanted with random target" }
+      ],
+      "archaeology": [],
+      "notes": "Core progression item. Broadly available across all major biomes and dimensions."
+    },
+    {
+      "item": "escape_charm",
+      "structures": [
+        { "id": "desert_pyramid",     "chance": 0.025 },
+        { "id": "jungle_pyramid",     "chance": 0.025 },
+        { "id": "monument",           "chance": 0.025 },
+        { "id": "bastion_remnant",    "chance": 0.025 },
+        { "id": "fortress",           "chance": 0.025 },
+        { "id": "end_city",           "chance": 0.25 },
+        { "id": "ancient_city",       "chance": 0.25 }
+      ],
+      "mob_drops": [
+        { "entity": "witch",          "chance": 0.0025 },
+        { "entity": "enderman",       "chance": 0.0025 }
+      ],
+      "archaeology": [
+        { "site": "desert_well",      "chance": 0.04 },
+        { "site": "trail_ruins",      "chance": 0.04 }
+      ],
+      "notes": "Rare across most sources; common only in the most dangerous late-game locations. Archaeology reflects lost traveler theme."
+    },
+    {
+      "item": "empty_totem",
+      "structures": [
+        { "id": "mansion",            "chance": 0.125 },
+        { "id": "pillager_outpost",   "chance": 0.125 }
+      ],
+      "mob_drops": [
+        { "entity": "evoker",         "chance": 0.005 }
+      ],
+      "archaeology": [
+        { "site": "desert_well",      "chance": 0.025 },
+        { "site": "trail_ruins",      "chance": 0.025 }
+      ],
+      "notes": "Thematically tied to the Totem of Undying. Archaeology chance reflects ancient origin."
+    },
+    {
+      "item": "mob_ward",
+      "structures": [
+        { "id": "ancient_city",       "chance": 0.075 }
+      ],
+      "mob_drops": [
+        { "entity": "evoker",         "chance": 0.0025 },
+        { "entity": "witch",          "chance": 0.0025 }
+      ],
+      "archaeology": [],
+      "notes": "Rare and powerful — limited to the most dangerous sources only."
+    },
+    {
+      "item": "potion_pot",
+      "structures": [
+        { "id": "desert_pyramid",     "chance": 0.075 },
+        { "id": "jungle_pyramid",     "chance": 0.075 },
+        { "id": "monster_room",       "chance": 0.10 },
+        { "id": "mineshaft",          "chance": 0.10 },
+        { "id": "monument",           "chance": 0.075 },
+        { "id": "fortress",           "chance": 0.075 },
+        { "id": "bastion_remnant",    "chance": 0.05 }
+      ],
+      "mob_drops": [],
+      "archaeology": [],
+      "notes": "Common in ancient and dungeon-style structures."
+    },
+    {
+      "item": "diamond_shard",
+      "structures": [
+        { "id": "monster_room",       "chance": 0.025 },
+        { "id": "mineshaft",          "chance": 0.025 },
+        { "id": "fortress",           "chance": 0.125 },
+        { "id": "ancient_city",       "chance": 0.125 }
+      ],
+      "mob_drops": [],
+      "archaeology": [],
+      "notes": "Scarce in early structures, more reliable in late-game locations."
+    },
+    {
+      "item": "fabrication_ritual_tablet",
+      "structures": [
+        { "id": "ancient_city",       "chance": 0.075 },
+        { "id": "monster_room",       "chance": 0.025 }
+      ],
+      "mob_drops": [
+        { "entity": "vindicator",     "chance": 0.005 }
+      ],
+      "archaeology": [],
+      "notes": "Ancient Builder lore — fits deep forgotten places."
+    },
+    {
+      "item": "warrior_ritual_tablet",
+      "structures": [
+        { "id": "bastion_remnant",    "chance": 0.025 }
+      ],
+      "mob_drops": [],
+      "archaeology": [],
+      "notes": "Exclusive to Bastions. Fits the aggressive combat culture of Piglins."
+    },
+    {
+      "item": "soulbound_ritual_tablet",
+      "structures": [
+        { "id": "ancient_city",       "chance": 0.025 }
+      ],
+      "mob_drops": [
+        { "entity": "enderman",       "chance": 0.0005 },
+        { "entity": "ender_dragon",   "chance": 1.0, "note": "guaranteed on kill — end-game milestone" }
+      ],
+      "archaeology": [],
+      "notes": "Rarest of the ritual tablets. Ender Dragon drop provides a meaningful milestone reward."
+    },
+    {
+      "item": "weathered_beacon",
+      "structures": [
+        { "id": "monument",           "chance": 0.10 },
+        { "id": "stronghold",         "chance": 0.10 },
+        { "id": "mansion",            "chance": 0.075 }
+      ],
+      "mob_drops": [],
+      "archaeology": [],
+      "notes": "Structure find only — not a mob drop. Intended as a rare but meaningful discovery."
+    },
+    {
+      "item": "iron_facade_block",
+      "_relative_weight": "1.0 (baseline)",
+      "structures": [
+        { "id": "village",            "chance": 0.15 },
+        { "id": "mineshaft",          "chance": 0.10 },
+        { "id": "pillager_outpost",   "chance": 0.10 },
+        { "id": "monster_room",       "chance": 0.075 }
+      ],
+      "mob_drops": [],
+      "archaeology": [],
+      "notes": "Most common facade block. Found in many overworld structures."
+    },
+    {
+      "item": "gold_facade_block",
+      "_relative_weight": "0.8 (4/5 of iron)",
+      "structures": [
+        { "id": "bastion_remnant",    "chance": 0.12 },
+        { "id": "fortress",           "chance": 0.08 },
+        { "id": "desert_pyramid",     "chance": 0.06 }
+      ],
+      "mob_drops": [],
+      "archaeology": [],
+      "notes": "4/5 as common as iron. Weighted toward Nether and warm-climate structures."
+    },
+    {
+      "item": "diamond_facade_block",
+      "_relative_weight": "0.6 (3/5 of iron)",
+      "structures": [
+        { "id": "ancient_city",       "chance": 0.09 },
+        { "id": "monument",           "chance": 0.06 },
+        { "id": "end_city",           "chance": 0.045 }
+      ],
+      "mob_drops": [],
+      "archaeology": [],
+      "notes": "3/5 as common as iron. Found in late-game and dangerous structures."
+    },
+    {
+      "item": "emerald_facade_block",
+      "_relative_weight": "0.4 (2/5 of iron)",
+      "structures": [
+        { "id": "ancient_city",       "chance": 0.06 },
+        { "id": "end_city",           "chance": 0.03 },
+        { "id": "mansion",            "chance": 0.03 }
+      ],
+      "mob_drops": [],
+      "archaeology": [],
+      "notes": "2/5 as common as iron. Rarest facade block — end-game and prestige locations only."
+    }
+  ],
+  "_excluded": [
+    "iron_bloom — excluded from loot tables for now",
+    "gold_bloom — excluded from loot tables for now"
+  ]
+}
