@@ -19,7 +19,7 @@ public class SoulboundRitualTabletItem extends InteractiveRewardItem {
     public static final String SOULBOUND_TAG = "hbs_soulbound_slot";
 
     public SoulboundRitualTabletItem() {
-        super("soulbound_ritual_tablet", true); // Consumes on use
+        super("soulbound_ritual_tablet", false); // Consumes on use
     }
 
     @Override

@@ -123,6 +123,8 @@ Requirements
 17.
 ---
 
+This folder represents a Minecraft Mod. I want to integrate the items in ModItems into the vanilla minecraft game structures, entities, etc. Please device a plan for setting the rate and structures to target. A broad outline of the specifics can be found in lootTable.json
+
 18.
 ---
 

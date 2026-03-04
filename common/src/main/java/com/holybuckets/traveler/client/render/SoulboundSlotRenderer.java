@@ -22,10 +22,10 @@ public class SoulboundSlotRenderer {
     // ===== CONFIGURABLE SETTINGS - Adjust these as needed =====
 
     /** Enable simple black border mode (disables pulsating effect) */
-    public static boolean USE_SIMPLE_BLACK_BORDER = false;
+    public static boolean USE_SIMPLE_BLACK_BORDER = true;
 
     /** Enable pulsating effect for inventory screens */
-    public static boolean ENABLE_PULSATING_INVENTORY = true;
+    public static boolean ENABLE_PULSATING_INVENTORY = false;
 
     // Border thickness settings
     public static int BORDER_THICKNESS = 2;
@@ -63,6 +63,7 @@ public class SoulboundSlotRenderer {
 
         Player player = mc.player;
         if (player == null) return;
+        if (player.isSpectator() || player.isDeadOrDying()) return;
 
         ManagedTraveler traveler = ManagedTraveler.localTraveler;
         if (traveler == null) return;
@@ -80,7 +81,8 @@ public class SoulboundSlotRenderer {
         int hotbarStartX = (screenWidth / 2) - (hotbarWidth / 2);
         int hotbarY = screenHeight - HOTBAR_Y_OFFSET;
 
-        int selectedHotbarIndex = traveler.getCurrentlySelectedHotbarIndex();
+
+        int selectedHotbarIndex = player.getInventory().selected;
 
         for (int hotbarSlot = 0; hotbarSlot < HOTBAR_SLOTS; hotbarSlot++) {
             if (soulboundSlots.contains(hotbarSlot)) {
@@ -142,9 +144,9 @@ public class SoulboundSlotRenderer {
                     if (USE_SIMPLE_BLACK_BORDER) {
                         drawSimpleBorder(graphics, slot.x, slot.y, thickness, BORDER_COLOR_BLACK, false, false);
                     } else if (ENABLE_PULSATING_INVENTORY) {
-                        drawPulsatingBorder(graphics, slot.x, slot.y, thickness, false, false);
+                        //drawPulsatingBorder(graphics, slot.x, slot.y, thickness, false, false);
                     } else {
-                        drawSimpleBorder(graphics, slot.x, slot.y, thickness, PULSE_COLOR_BRIGHT, false, false);
+                        //drawSimpleBorder(graphics, slot.x, slot.y, thickness, PULSE_COLOR_BRIGHT, false, false);
                     }
                 }
             }

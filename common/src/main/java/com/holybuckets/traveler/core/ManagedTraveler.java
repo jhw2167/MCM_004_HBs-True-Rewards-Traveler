@@ -3,7 +3,6 @@ package com.holybuckets.traveler.core;
 import com.holybuckets.foundation.CommonClass;
 import com.holybuckets.foundation.GeneralConfig;
 import com.holybuckets.foundation.HBUtil;
-import com.holybuckets.foundation.LoggerBase;
 import com.holybuckets.foundation.event.EventRegistrar;
 import com.holybuckets.foundation.event.custom.PlayerNearStructureEvent;
 import com.holybuckets.foundation.event.custom.ServerTickEvent;
@@ -13,6 +12,7 @@ import com.holybuckets.foundation.player.ManagedPlayer;
 import com.holybuckets.foundation.structure.StructureAPI;
 import com.holybuckets.foundation.structure.StructureInfo;
 import com.holybuckets.foundation.structure.StructureManager;
+import com.holybuckets.traveler.LoggerProject;
 import com.holybuckets.traveler.TravelerRewardsMain;
 import com.holybuckets.traveler.enchantment.ModEnchantments;
 import com.holybuckets.traveler.item.ModItems;
@@ -127,14 +127,14 @@ public class ManagedTraveler implements IManagedPlayer {
         if(traveler == null) return;
         boolean res = traveler.addSoulboundSlot(hand, stack);
         if(res) stack.shrink(1);
-        getManagedPlayer(serverPlayer).save();
+        ManagedPlayer.save(serverPlayer);
     }
 
     public static void usePureHeart(ServerPlayer serverPlayer) {
         ManagedTraveler traveler = ManagedTraveler.getManagedTraveler(serverPlayer);
         if(traveler == null) return;
         traveler.addHealth();
-        getManagedPlayer(serverPlayer).save();
+        ManagedPlayer.save(serverPlayer);
     }
 
     public static void useWarriorRitualTablet(ServerPlayer serverPlayer) {
@@ -410,6 +410,7 @@ public class ManagedTraveler implements IManagedPlayer {
     public void handlePlayerJoin(Player player) {
         // Restore soulbound items if any are pending from death
         if (player instanceof ServerPlayer serverPlayer) {
+            this.player = serverPlayer; // Update reference - dedicated servers create new player objects on rejoin
             restoreSoulboundItems();
         }
     }
@@ -456,18 +457,18 @@ public class ManagedTraveler implements IManagedPlayer {
                 (getServerPlayer().level()).addFreshEntity(item);
             }
         }
-
-
         soulboundItemsToReturn.clear();
     }
 
     @Override
     public void handlePlayerRespawn(Player player) {
-        // Restore soulbound items after respawn
-        if (player instanceof ServerPlayer serverPlayer) {
+
+        if (player instanceof ServerPlayer serverPlayer)
+        {
             restoreSoulboundItems();
             this.lastWarriorRitual = -1;                //reset ritual bonus on respawn
             this.setHealth(this.pureHeartsConsumed);    //set full health again on spawn
+            ManagedPlayer.save(serverPlayer);
         }
     }
 
@@ -488,10 +489,12 @@ public class ManagedTraveler implements IManagedPlayer {
         Level level = player.level();
         if( level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) ) return;
         if(!TravelerRewardsMain.CONFIG.simpleRewards.enableSoulboundSlots) return;
+
         if (!soulboundSlots.isEmpty()) {
             Inventory inventory = player.getInventory();
             for (int slotIndex : soulboundSlots) {
-                soulboundItemsToReturn.put(slotIndex, inventory.getItem(slotIndex));
+                if(inventory.getItem(slotIndex).isEmpty()) continue;
+                soulboundItemsToReturn.put(slotIndex, inventory.getItem(slotIndex).copy());
                 inventory.setItem(slotIndex, ItemStack.EMPTY);
             }
         }
@@ -510,6 +513,9 @@ public class ManagedTraveler implements IManagedPlayer {
      {
          if(!(player instanceof ServerPlayer)) return;
         if (soulboundItemsToReturn.isEmpty()) return;
+        //if gamerule keep inventory or config
+        if(player.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) return;
+        if( !TravelerRewardsMain.CONFIG.simpleRewards.enableSoulboundSlots ) return;
 
         Inventory inventory = player.getInventory();
         for (int i : soulboundItemsToReturn.keySet()) {
@@ -517,7 +523,9 @@ public class ManagedTraveler implements IManagedPlayer {
                 inventory.setItem(i, soulboundItemsToReturn.get(i));
             }
         }
-        soulboundItemsToReturn.clear();
+
+
+        soulboundSlots.clear();
     }
 
     /**
@@ -751,7 +759,7 @@ public class ManagedTraveler implements IManagedPlayer {
 
                 return new DeathLocation(x, y, z, dimensionId);
             } catch (Exception e) {
-                LoggerBase.logError(null, CLASS_ID + "001", "Failed to deserialize DeathLocation: " + data);
+                LoggerProject.logError(null, CLASS_ID + "001", "Failed to deserialize DeathLocation: " + data);
                 return null;
             }
         }

@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:chest",
+  "replace":false, "type": "minecraft:chest",
   "pools": [
     {
       "bonus_rolls": 0.0,
@@ -34,7 +34,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "hbs_traveler_rewards:enchanted_essence"
+          "name": "hbs_foundation:enchanted_essence"
         }
       ],
       "rolls": {
