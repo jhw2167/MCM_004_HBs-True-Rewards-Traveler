@@ -3,6 +3,7 @@ package com.holybuckets.traveler;
 import com.holybuckets.foundation.event.BalmEventRegister;
 import com.holybuckets.traveler.block.ModBlocks;
 import com.holybuckets.traveler.block.be.ModBlockEntities;
+import com.holybuckets.traveler.command.CommandList;
 import com.holybuckets.traveler.config.TravelerRewardsConfig;
 import com.holybuckets.traveler.enchantment.ModEnchantments;
 import com.holybuckets.traveler.item.ModItems;
@@ -35,13 +36,16 @@ public class CommonClass {
         //RegisterConfigs
         Balm.getConfig().registerConfig(TravelerRewardsConfig.class);
         TravelerRewardsMain.INSTANCE = new TravelerRewardsMain();
-        BalmEventRegister.registerEvents();
-        BalmEventRegister.registerCommands();
+
         ModBlocks.initialize(Balm.getBlocks());
         ModBlockEntities.initialize(Balm.getBlockEntities());
         ModItems.initialize(Balm.getItems());
         ModMenus.initialize(Balm.getMenus());
         ModEnchantments.register();
+
+        CommandList.register();
+        BalmEventRegister.registerEvents();
+        BalmEventRegister.registerCommands();
 
         
         isInitialized = true;

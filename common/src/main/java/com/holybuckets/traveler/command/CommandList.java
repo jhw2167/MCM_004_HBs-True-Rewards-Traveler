@@ -5,6 +5,8 @@ package com.holybuckets.traveler.command;
 import com.holybuckets.foundation.HBUtil;
 import com.holybuckets.foundation.event.CommandRegistry;
 import com.holybuckets.traveler.LoggerProject;
+import com.holybuckets.traveler.core.ManagedTraveler;
+import com.holybuckets.traveler.core.ManagedTravelerApi;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -23,12 +25,14 @@ import java.util.List;
 public class CommandList {
 
     public static final String CLASS_ID = "033";
-    private static final String PREFIX = "hbTemples";
+    private static final String PREFIX = "hbTraveler";
 
     public static void register() {
-        CommandRegistry.register(LocateClusters::noArgs);
-        CommandRegistry.register(LocateClusters::limitCount);
-        CommandRegistry.register(LocateClusters::limitCountSpecifyBlockType);
+        //CommandRegistry.register(LocateClusters::noArgs);
+        //CommandRegistry.register(LocateClusters::limitCount);
+        //CommandRegistry.register(LocateClusters::limitCountSpecifyBlockType);
+
+        CommandRegistry.register(ClearSoulboundSlots::register);
     }
 
     //1. Locate Clusters
@@ -90,6 +94,26 @@ public class CommandList {
     }
     //END COMMAND
 
+    //2. Clear Soulbound Slots
+    private static class ClearSoulboundSlots
+    {
+        private static LiteralArgumentBuilder<CommandSourceStack> register() {
+            return Commands.literal(PREFIX)
+                .then(Commands.literal("clearSoulboundSlots")
+                    .executes(context -> execute(context.getSource()))
+                );
+        }
+
+        private static int execute(CommandSourceStack source)
+        {
+            if(source.getEntity() instanceof ServerPlayer player) {
+                ManagedTravelerApi.clearSoulboundSlots(player);
+                return 1;
+            } else {
+                LoggerProject.logError("033002", "clearSoulboundSlots command should only be executed by a player.");
+                return 0;
+            }
+        }
 
 }
 //END CLASS COMMANDLIST

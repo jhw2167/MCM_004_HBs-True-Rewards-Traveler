@@ -300,6 +300,11 @@ public class ManagedTraveler implements IManagedPlayer {
         
     }
 
+    public void clearSoulboundSlots() {
+        soulboundSlots.clear();
+    }
+
+
     public int getTotalDeaths() {
         return totalDeaths;
     }
