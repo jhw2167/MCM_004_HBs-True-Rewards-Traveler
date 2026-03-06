@@ -70,6 +70,19 @@ Requirements
 	- Get Block Bench Anims
 	- 
 
+	Model:
+	Regular Chest, with top face having an allay symbol on it
+
+	Item
+	Has an allay carrying a chest as if it were a hot air balloon
+
+	1. Place chest and fill with items
+	2. Punch chest and allay will transport it back to the last bed you slept in
+	3. error message if spawn point with bed cannot be found
+
+	break to return to your inventory
+	
+
 13. HB's Foundations Update
 ---
 
@@ -97,6 +110,7 @@ Requirements
 	- Entity saves player items to nbt
 	- Entiy loads IntObjectHashmpa<slot, itemStack> from nbt data if necessary
 
+
 15. Builders Flight Effect
 ---
 
@@ -108,8 +122,11 @@ Requirements
 
 	- Must sleep the night before
 
+	Item Symbol
+	- Pickaxe with wings
 
-16. Add Enchanted Essence Cauldron Support
+
+16. Add Enchanted Essence Cauldron Support			XXX
 ---
 
 	- Need a biomeManager for local biomes

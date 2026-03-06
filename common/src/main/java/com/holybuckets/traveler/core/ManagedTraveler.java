@@ -25,8 +25,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -72,7 +75,7 @@ public class ManagedTraveler implements IManagedPlayer {
     public static ManagedTraveler localTraveler;
     private final Set<Integer> soulboundSlots; // Soulbound slot tracking (slot index -> is soulbound)
     private final IntObjectMap<ItemStack> soulboundItemsToReturn; //The items in the soulbound slots we must return to player. Must be careful if they leave the game after dying.
-    private final Set<ItemStack> checkedWeapons;
+
     private BlockPos structureEntryPos;
     private StructureInfo closestStructureInfo;
     private DeathLocation lastDeathLocation; // Death location tracking for Savior Orb
@@ -97,7 +100,6 @@ public class ManagedTraveler implements IManagedPlayer {
         this.player = player;
         this.soulboundItemsToReturn = new IntObjectHashMap<>();
         this.soulboundSlots = new HashSet<>();
-        this.checkedWeapons = new HashSet<>();
         this.lastDeathLocation = null;
         this.pureHeartsConsumed = 0;
         this.totalDeaths = 0;
@@ -141,7 +143,6 @@ public class ManagedTraveler implements IManagedPlayer {
         ManagedTraveler traveler = ManagedTraveler.getManagedTraveler(serverPlayer);
         if(traveler == null) return;
         traveler.warriorTabletsUsed++;
-        traveler.checkedWeapons.clear();
     }
 
     //** SOULBOUND SLOT MANAGEMENT
@@ -301,6 +302,29 @@ public class ManagedTraveler implements IManagedPlayer {
 
     public int getTotalDeaths() {
         return totalDeaths;
+    }
+
+    private static final float[] LEVEL_WEIGHTS = { 1.0f, 1.0f, 1.0f, 1.5f };
+
+    public int getPlayerDynamicLevel() {
+        int healthLevel = this.pureHeartsConsumed * 2;
+        int armorLevel = this.player.getArmorValue();
+        int warriorBonus = this.warriorTabletsUsed;
+
+        float totalWeaponDamage = 0f;
+        for (ItemStack weapon : this.weapons) {
+            if (weapon.isEmpty()) continue;
+            for (AttributeModifier modifier : weapon.getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_DAMAGE)) {
+                totalWeaponDamage += (float) modifier.getAmount();
+            }
+        }
+
+        return (int)(
+            (healthLevel              * LEVEL_WEIGHTS[0]) +
+                (armorLevel               * LEVEL_WEIGHTS[1]) +
+                (warriorBonus             * LEVEL_WEIGHTS[2]) +
+                ((int) totalWeaponDamage  * LEVEL_WEIGHTS[3])
+        );
     }
 
     private void applyWarriorRitualBonusOnTick()
@@ -554,10 +578,9 @@ public class ManagedTraveler implements IManagedPlayer {
                 potionPots.put(i, stack);
             }
 
-
-            if(stack.isEnchantable()) {     //not relevant at the moment
-                //Item item = stack.getItem();
-                //weapons.add(stack);
+            boolean isWeapon = stack.is(ItemTags.SWORDS) || stack.is(ItemTags.AXES);
+            if(isWeapon) {
+                weapons.add(stack);
             }
 
             //Check for lasting enchantment
