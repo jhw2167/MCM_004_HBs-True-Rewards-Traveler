@@ -1,0 +1,6 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "holybuckets_traveler:item/blessing_warm_winds_potion"
+  }
+}

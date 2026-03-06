@@ -2,11 +2,13 @@ package com.holybuckets.traveler.item;
 
 import com.holybuckets.foundation.event.EventRegistrar;
 import com.holybuckets.foundation.item.SimpleRewardItem;
+import com.holybuckets.traveler.effect.ModEffects;
 import net.blay09.mods.balm.api.DeferredObject;
 import net.blay09.mods.balm.api.event.server.ServerStartingEvent;
 import net.blay09.mods.balm.api.item.BalmItems;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 
@@ -38,6 +40,12 @@ public class ModItems {
     public static WarriorRitualTabletItem warriorRitualTablet;
     public static PotionPotItem potionPot;
     public static EscapeCharmItem escapeCharm;
+
+    // Blessing Potion Items
+    public static BlessingTravelerPotionItem blessingTravelerPotion;
+    public static BlessingTravelerPotionItem blessingCoolBreezePotion;
+    public static BlessingTravelerPotionItem blessingWarmWindsPotion;
+    public static BlessingTravelerPotionItem blessingBuildersFlightPotion;
 
     // Anvil Enchantment Items (anvil-only enhancements)
     // Tier 1 (Basic)
@@ -89,6 +97,31 @@ public class ModItems {
         items.registerItem(() -> potionPot = new PotionPotItem(), id("potion_pot"));
         items.registerItem(() -> escapeCharm = new EscapeCharmItem(), id("escape_charm"));
 
+        // Register Blessing Potion Items
+        items.registerItem(() -> blessingTravelerPotion = new BlessingTravelerPotionItem(
+            ModEffects.BLESSING_TRAVELER,
+            0x98D982,
+            new Item.Properties().stacksTo(16)
+        ), id("blessing_traveler_potion"));
+
+        items.registerItem(() -> blessingCoolBreezePotion = new BlessingTravelerPotionItem(
+            ModEffects.BLESSING_COOL_BREEZE,
+            0x5B9BD5,
+            new Item.Properties().stacksTo(16)
+        ), id("blessing_cool_breeze_potion"));
+
+        items.registerItem(() -> blessingWarmWindsPotion = new BlessingTravelerPotionItem(
+            ModEffects.BLESSING_WARM_WINDS,
+            0xE8853D,
+            new Item.Properties().stacksTo(16)
+        ), id("blessing_warm_winds_potion"));
+
+        items.registerItem(() -> blessingBuildersFlightPotion = new BlessingTravelerPotionItem(
+            ModEffects.BLESSING_BUILDERS_FLIGHT,
+            0xC8C8D4,
+            new Item.Properties().stacksTo(16)
+        ), id("blessing_builders_flight_potion"));
+
         // Register Anvil Enchantment Items - Tier 1
         items.registerItem(() -> whetstone = new AnvilEnchantmentItem(
             "whetstone",
@@ -132,7 +165,11 @@ public class ModItems {
         items.registerItem(() -> emptyTotem = new EmptyTotemItem(), id("empty_totem"), null);
 
         items.addToCreativeModeTab(id(MOD_ID), () -> new ItemLike[] {
-            com.holybuckets.foundation.item.ModItems.enchantedEssence
+            com.holybuckets.foundation.item.ModItems.enchantedEssence,
+            blessingTravelerPotion,
+            blessingCoolBreezePotion,
+            blessingWarmWindsPotion,
+            blessingBuildersFlightPotion
         });
     }
 
