@@ -9,7 +9,8 @@
         "BeaconBlockEntityAccessor",
         "LootTableMixin",
         "LootPoolAccessor",
-        "LootItemAccessor"
+        "LootItemAccessor",
+        "ItemStackTooltipMixin"
     ],
     "client": [
     ],

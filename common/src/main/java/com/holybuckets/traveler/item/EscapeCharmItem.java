@@ -21,18 +21,18 @@ import net.minecraft.network.chat.Component;
 public class EscapeCharmItem extends InteractiveRewardItem {
 
     public EscapeCharmItem() {
-        super("escape_charm", true); // Consumes on use
+        super("escape_charm", false); // Consumes on use
     }
 
     @Override
     protected InteractionResult onRightClickAir(Level level, Player player, InteractionHand hand, ItemStack stack) {
-        if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
-            return attemptEscape(serverPlayer);
+        if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer && player.getItemInHand(hand) == stack) {
+            return attemptEscape(serverPlayer, stack);
         }
         return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
     }
 
-    private InteractionResult attemptEscape(ServerPlayer player)
+    private InteractionResult attemptEscape(ServerPlayer player, ItemStack stack)
     {
         // Check if player is at full health
         if (player.getHealth() < player.getMaxHealth()) {
@@ -60,7 +60,7 @@ public class EscapeCharmItem extends InteractiveRewardItem {
             return InteractionResult.FAIL;
         }
 
-        traveler.onUseEscapeRope();
+        traveler.onUseEscapeRope(stack);
 
         return InteractionResult.CONSUME;
     }

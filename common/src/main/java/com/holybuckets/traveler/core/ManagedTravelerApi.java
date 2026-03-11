@@ -1,7 +1,6 @@
 package com.holybuckets.traveler.core;
 
 import com.holybuckets.foundation.HBUtil;
-import com.holybuckets.foundation.player.ManagedPlayer;
 import com.holybuckets.traveler.LoggerProject;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -27,23 +26,15 @@ public class ManagedTravelerApi {
 
     public static void clearSoulboundSlots(Player player) {
         try {
-            ManagedTraveler mp = getManagedTravelerInternal(player);
+            ManagedTraveler mp = getManagedTraveler(player);
             mp.clearSoulboundSlots();
         } catch (ManagedTravelerException e) {
             LoggerProject.logError(e.getErrorCode(), e.getMessage());
         }
     }
 
-    static ManagedTraveler getManagedTraveler(Player player) {
-        try {
-            return getManagedTravelerInternal(player);
-        } catch (ManagedTravelerException e) {
-            LoggerProject.logError(e.getErrorCode(), e.getMessage());
-            return null;
-        }
-    }
 
-    private static ManagedTraveler getManagedTravelerInternal(Player player) throws ManagedTravelerException {
+    private static ManagedTraveler getManagedTraveler(Player player) throws ManagedTravelerException {
         if(!(player instanceof ServerPlayer)) {
             throw new ManagedTravelerException("034000", "ManagedTravelerApi::getManagedTraveler should only be called on the server side.");
         }

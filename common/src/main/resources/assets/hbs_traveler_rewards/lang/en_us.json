@@ -85,7 +85,8 @@
 
   "enchantment.hbs_traveler_rewards.lasting": "Curse of Lasting",
   "enchantment.hbs_traveler_rewards.lasting.desc": "Item will vanish from your inventory after several minutes or days. Lasting stacks up to X which lasts 64 days",
-  "enchantment.hbs_traveler_rewards.lasting.expired": "Your %s has vanished due to the Curse of Lasting!",
+  "enchantment.hbs_traveler_rewards.lasting.expired": "Your %s was reclaimed by the void",
+  "tooltip.hbs_traveler_rewards.lasting.time_remaining": "Expires in %s",
 
   "item.hbs_traveler_rewards.mob_ward": "Mob Ward",
   "item.hbs_traveler_rewards.mob_ward.desc": "Right click to add items to the ward. Any mob that drops this item will be warded away",

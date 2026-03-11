@@ -28,7 +28,7 @@ public class BlessingTravelerPotionItem extends Item {
 
     public BlessingTravelerPotionItem(DeferredObject<MobEffect> effect, int color, Properties properties) {
         super(properties);
-        this.effect = effect;
+        this.effect = () -> effect.get();
         this.r = ((color >> 16)  & 0xFF) / 255.0f;
         this.g = ((color >> 8)   & 0xFF) / 255.0f;
         this.b = ((color)        & 0xFF) / 255.0f;

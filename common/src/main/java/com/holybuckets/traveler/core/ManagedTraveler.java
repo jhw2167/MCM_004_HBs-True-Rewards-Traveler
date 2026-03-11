@@ -1,6 +1,5 @@
 package com.holybuckets.traveler.core;
 
-import com.holybuckets.foundation.CommonClass;
 import com.holybuckets.foundation.GeneralConfig;
 import com.holybuckets.foundation.HBUtil;
 import com.holybuckets.foundation.event.EventRegistrar;
@@ -21,9 +20,11 @@ import io.netty.util.collection.IntObjectMap;
 import net.blay09.mods.balm.api.event.EventPriority;
 import net.blay09.mods.balm.api.event.TossItemEvent;
 import net.blay09.mods.balm.api.event.server.ServerStartingEvent;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
@@ -34,6 +35,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
@@ -79,6 +81,7 @@ public class ManagedTraveler implements IManagedPlayer {
     private BlockPos structureEntryPos;
     private StructureInfo closestStructureInfo;
     private DeathLocation lastDeathLocation; // Death location tracking for Savior Orb
+    boolean inventoryOpened;
 
     // Statistics
     private int totalDeaths;
@@ -119,7 +122,7 @@ public class ManagedTraveler implements IManagedPlayer {
         GENERAL_CONFIG = GeneralConfig.getInstance();
         reg.registerOnBeforeServerStarted( ManagedTraveler::onBeforeServerStarted, EventPriority.Lowest );
         reg.registerOnPlayerNearStructure(null, ManagedTraveler::onPlayerNearStructure);
-        reg.registerOnServerTick(TickType.ON_SINGLE_TICK, ManagedTraveler::onServerTicks);
+        reg.registerOnServerTick(TickType.ON_SINGLE_TICK, ManagedTraveler::onServerTick);
         reg.registerOnTossItem(ManagedTraveler::onPlayerTossItem);
     }
 
@@ -143,6 +146,11 @@ public class ManagedTraveler implements IManagedPlayer {
         ManagedTraveler traveler = ManagedTraveler.getManagedTraveler(serverPlayer);
         if(traveler == null) return;
         traveler.warriorTabletsUsed++;
+    }
+
+    public void onUseEscapeRope(ItemStack stack) {
+        boolean res = ITEM_IMPLEMENTATION.onUseEscapeRope(player, structureEntryPos);
+        if(res) stack.shrink(1);
     }
 
     //** SOULBOUND SLOT MANAGEMENT
@@ -262,10 +270,6 @@ public class ManagedTraveler implements IManagedPlayer {
         return ITEM_IMPLEMENTATION.isInDeepCaves(player);
     }
 
-    public void onUseEscapeRope()
-    {
-        ITEM_IMPLEMENTATION.onUseEscapeRope(player, structureEntryPos);
-    }
 
     /**
      * Gets the total number of Pure Hearts consumed
@@ -553,8 +557,7 @@ public class ManagedTraveler implements IManagedPlayer {
             }
         }
 
-
-        soulboundSlots.clear();
+        soulboundItemsToReturn.clear();
     }
 
     /**
@@ -567,6 +570,11 @@ public class ManagedTraveler implements IManagedPlayer {
         potionPots.clear();
         lastingItems.clear();
         weapons.clear();
+
+        //user is opening  a container, we only want this true when they initially open it
+        if(player.hasContainerOpen() ) {
+            inventoryOpened = !inventoryOpened;
+        }
 
         Inventory inventory = player.getInventory();
         for (int i = 0; i < inventory.getContainerSize(); i++) {
@@ -593,11 +601,16 @@ public class ManagedTraveler implements IManagedPlayer {
             int lastingLevel = EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.LASTING.get(), stack);
             if (lastingLevel > 0) {
                 lastingItems.put(i, stack);
+                if(inventoryOpened && ITEM_IMPLEMENTATION.getLastingExpiration(stack) != null) {
+                    Long dur = ITEM_IMPLEMENTATION.calculateLastingDuration(stack);
+                    ITEM_IMPLEMENTATION.setLastingDuration(stack, dur); //will sync with client
+                }
             }
-
 
         }
 
+        //As long as inventory is open, this stays true, then false during while loop
+        inventoryOpened = player.hasContainerOpen();
     }
 
     public void testClosestStructure()
@@ -703,7 +716,7 @@ public class ManagedTraveler implements IManagedPlayer {
      * Called every 20 server ticks to check for Lasting enchantment expiration
      */
     private static int count=0;
-    private static void onServerTicks(ServerTickEvent event)
+    private static void onServerTick(ServerTickEvent event)
     {
         if(count++<10) return;
         count=0;
@@ -720,9 +733,18 @@ public class ManagedTraveler implements IManagedPlayer {
         }
     }
 
-    /**
-     * Player Drop Item
-     */
+    private static int clientCount=0;
+    private static void onClientTick() {
+        if (clientCount++ < 10) return;
+            clientCount = 0;
+
+        if(localTraveler != null)
+            localTraveler.takeInventory();
+    }
+
+        /**
+         * Player Drop Item
+         */
     private static void onPlayerTossItem(TossItemEvent event)
     {
         Player player = event.getPlayer();
@@ -733,6 +755,41 @@ public class ManagedTraveler implements IManagedPlayer {
             ITEM_IMPLEMENTATION.handlePotionPotToss(serverPlayer, stack);
         }
 
+    }
+
+    public Collection<ItemStack> getLastingItems() {
+        return lastingItems.values();
+    }
+
+    public static final long DAY_LENGTH_TICKS = 24000;
+
+    public void appendLastingTooltip(ItemStack stack, List<Component> tooltip)
+    {
+        //clientSide default
+       Long ticksLeft =  ItemImplementation.getLastingDuration(stack);
+       if(GeneralConfig.getInstance().isIntegrated()) {
+            ticksLeft = ITEM_IMPLEMENTATION.calculateLastingDuration(stack);
+       }
+
+       if(ticksLeft == null) return;
+
+       String timeLeft;
+       if(ticksLeft > DAY_LENGTH_TICKS) {
+           timeLeft = String.format("%.0f days", (float)ticksLeft / DAY_LENGTH_TICKS);
+       }
+       else if(ticksLeft > 5*1200) {
+           timeLeft = String.format("%.0f minutes", (float)ticksLeft / 1200);
+       }
+       else {
+           timeLeft = String.format("%d seconds", ticksLeft / 20);
+       }
+
+        tooltip.add(Component.translatable(
+                "tooltip.hbs_traveler_rewards.lasting.time_remaining", timeLeft)
+            .withStyle(style -> style
+                .withColor(ChatFormatting.RED)
+                .withItalic(true)
+            ));
     }
 
 

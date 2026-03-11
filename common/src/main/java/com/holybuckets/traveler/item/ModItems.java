@@ -99,28 +99,25 @@ public class ModItems {
 
         // Register Blessing Potion Items
         items.registerItem(() -> blessingTravelerPotion = new BlessingTravelerPotionItem(
-            ModEffects.BLESSING_TRAVELER,
-            0x98D982,
+            ModEffects.BLESSING_TRAVELER, 0x98D982,
             new Item.Properties().stacksTo(16)
-        ), id("blessing_traveler_potion"));
+        ), id("blessing_traveler_potion"), null);
 
         items.registerItem(() -> blessingCoolBreezePotion = new BlessingTravelerPotionItem(
-            ModEffects.BLESSING_COOL_BREEZE,
-            0x5B9BD5,
+            ModEffects.BLESSING_COOL_BREEZE, 0x5B9BD5,
             new Item.Properties().stacksTo(16)
-        ), id("blessing_cool_breeze_potion"));
+        ), id("blessing_cool_breeze_potion"), null);
 
         items.registerItem(() -> blessingWarmWindsPotion = new BlessingTravelerPotionItem(
-            ModEffects.BLESSING_WARM_WINDS,
-            0xE8853D,
+            ModEffects.BLESSING_WARM_WINDS, 0xE8853D,
             new Item.Properties().stacksTo(16)
-        ), id("blessing_warm_winds_potion"));
+        ), id("blessing_warm_winds_potion"), null);
 
         items.registerItem(() -> blessingBuildersFlightPotion = new BlessingTravelerPotionItem(
             ModEffects.BLESSING_BUILDERS_FLIGHT,
             0xC8C8D4,
             new Item.Properties().stacksTo(16)
-        ), id("blessing_builders_flight_potion"));
+        ), id("blessing_builders_flight_potion"), null);
 
         // Register Anvil Enchantment Items - Tier 1
         items.registerItem(() -> whetstone = new AnvilEnchantmentItem(
@@ -166,10 +163,6 @@ public class ModItems {
 
         items.addToCreativeModeTab(id(MOD_ID), () -> new ItemLike[] {
             com.holybuckets.foundation.item.ModItems.enchantedEssence,
-            blessingTravelerPotion,
-            blessingCoolBreezePotion,
-            blessingWarmWindsPotion,
-            blessingBuildersFlightPotion
         });
     }
 

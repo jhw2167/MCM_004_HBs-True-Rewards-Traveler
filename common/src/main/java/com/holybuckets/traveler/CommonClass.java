@@ -5,6 +5,7 @@ import com.holybuckets.traveler.block.ModBlocks;
 import com.holybuckets.traveler.block.be.ModBlockEntities;
 import com.holybuckets.traveler.command.CommandList;
 import com.holybuckets.traveler.config.TravelerRewardsConfig;
+import com.holybuckets.traveler.effect.ModEffects;
 import com.holybuckets.traveler.enchantment.ModEnchantments;
 import com.holybuckets.traveler.item.ModItems;
 import com.holybuckets.traveler.menu.ModMenus;
@@ -42,6 +43,7 @@ public class CommonClass {
         ModItems.initialize(Balm.getItems());
         ModMenus.initialize(Balm.getMenus());
         ModEnchantments.register();
+        ModEffects.register();
 
         CommandList.register();
         BalmEventRegister.registerEvents();

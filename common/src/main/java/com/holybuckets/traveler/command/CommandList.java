@@ -114,6 +114,7 @@ public class CommandList {
                 return 0;
             }
         }
+    }
 
 }
 //END CLASS COMMANDLIST

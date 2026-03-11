@@ -12,6 +12,9 @@ import java.util.Set;
 @Config(Constants.MOD_ID)
 public class TravelerRewardsConfig {
 
+    @Comment("When true, loot items from this mod will spawn in existing vanilla structures at constant rates. To view these rates, see my github. To alter these values, set this value to false and use a different mod like KubeJS to configure")
+    public boolean enableLootInVanillaStructures = true;
+
     public static class SimpleRewardsConfig {
         @NestedType(String.class)
         @Comment("Blocks that can be duplicated by the fabrication ritual")

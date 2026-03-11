@@ -1,6 +1,7 @@
 package com.holybuckets.traveler.core;
 
 import com.holybuckets.foundation.GeneralConfig;
+import com.holybuckets.foundation.HBUtil;
 import com.holybuckets.foundation.networking.SimpleStringMessage;
 import com.holybuckets.foundation.structure.StructureAPI;
 import com.holybuckets.traveler.LoggerProject;
@@ -30,7 +31,8 @@ import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
@@ -114,6 +116,39 @@ public class ItemImplementation {
         return (player.blockPosition().getY() < escape_charm_MAX_Y_CAVE_ESCAPE);
     }
 
+    /**
+     * Find the lowest level chunk section above the player which does not "haveOnlyAir()"
+     * @param level
+     * @param pos
+     * @return
+     */
+    /**
+     * Find the lowest level chunk section above the player which does not "haveOnlyAir()"
+     * @param level
+     * @param pos
+     * @return the lowest non-air-only section above pos, or null if none found
+     */
+    private int getMaxYBelowSky(Level level, BlockPos pos)
+    {
+        ChunkAccess chunk = level.getChunk(pos);
+
+        LevelChunkSection lowestSkySection = null;
+        int sec = chunk.getSections().length;
+        do {
+            sec--;
+            LevelChunkSection section = chunk.getSections()[sec];
+            if (section != null && !section.hasOnlyAir()) {
+                lowestSkySection = section;
+            }
+        } while (sec > 0 && lowestSkySection == null);
+
+        int lowestY = 16;
+        do {
+            lowestY--;
+        } while (lowestY > 0 && lowestSkySection.getBlockState(8,lowestY,8).isAir());
+
+        return HBUtil.WorldPos.sectionIndexToY(sec, level.getMinBuildHeight()) + lowestY;
+    }
 
     private static final int[] ESCAPE_OFFSETS = {-48, -32, -16, 16, 32, 48};
     private static final int[] ESCAPE_PARTIAL_OFFSETS = {-16, -8, -4, -1, 1, 4, 8, 16};
@@ -133,39 +168,49 @@ public class ItemImplementation {
 
         // Get the top solid block at this X,Z coordinate
         // This uses Minecraft's built-in heightmap which tracks the surface
-        int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
-        BlockPos bestPos = new BlockPos(x, surfaceY, z);
-        int highestY = Integer.MIN_VALUE;
+        int size = ESCAPE_OFFSETS.length*ESCAPE_OFFSETS.length;
+        LinkedList<BlockPos> potentialPositions = new LinkedList<>();
+        int middleYIdex = 0;
         for (int dx : ESCAPE_OFFSETS)
         {
             for (int dz : ESCAPE_OFFSETS)
             {
                  x = playerPos.getX() + dx;
                  z = playerPos.getZ() + dz;
+                 BlockPos pos = new BlockPos(x, playerPos.getY(), z);
+                 int newY = getMaxYBelowSky(level, pos);
 
-                if( surfaceY > level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z))
-                    continue;
-                surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
-                BlockPos surfacePos = new BlockPos(x, surfaceY, z);
-
-                if (level.getBlockState(surfacePos).isAir() &&
-                    level.getBlockState(surfacePos.above()).isAir() &&
-                    surfaceY > highestY) {
-                    highestY = surfaceY;
-                    bestPos = surfacePos;
+                 //add first if newY is less than middle y, add last
+                 if((potentialPositions.isEmpty())) {
+                     potentialPositions.addFirst(new BlockPos(x, newY, z));
+                 }
+                 else if(newY < potentialPositions.getFirst().getY()) {
+                     potentialPositions.addFirst(new BlockPos(x, newY, z));
+                 }
+                 else if(newY < potentialPositions.get(middleYIdex).getY()) {
+                     potentialPositions.add(middleYIdex, new BlockPos(x, newY, z));
+                 }
+                 else if(newY < potentialPositions.getLast().getY()) {
+                     potentialPositions.add(middleYIdex+1, new BlockPos(x, newY, z));
+                } else {
+                    potentialPositions.addLast(new BlockPos(x, newY, z));
                 }
+
+                middleYIdex = potentialPositions.size() / 2;
+
             }
         }
 
-        // Search partial offsets for a position with a valid landing spot
+
+
+        BlockPos startPos = potentialPositions.get(middleYIdex);
         for (int dx : ESCAPE_PARTIAL_OFFSETS)
         {
             for (int dz : ESCAPE_PARTIAL_OFFSETS)
             {
-                x = playerPos.getX() + dx;
-                z = playerPos.getZ() + dz;
-                int sy = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
-                BlockPos candidate = new BlockPos(x, sy, z);
+                x = startPos.getX() + dx;
+                z = startPos.getZ() + dz;
+                BlockPos candidate = startPos.offset(dx, 0, dz);
 
                 if (level.getBlockState(candidate).isAir() &&
                     level.getBlockState(candidate.above()).isAir() &&
@@ -175,7 +220,7 @@ public class ItemImplementation {
             }
         }
 
-        return bestPos; // null if no valid spot found
+        return startPos;
     }
 
     private boolean hasLandingSpot(Level level, BlockPos pos) {
@@ -187,7 +232,7 @@ public class ItemImplementation {
             || !level.getBlockState(threeBelowPos).isAir();
     }
 
-    void onUseEscapeRope(Player player, BlockPos structureEntryPos)
+    boolean onUseEscapeRope(Player player, BlockPos structureEntryPos)
     {
         if(isInStructure(player) && structureEntryPos != null)
         {
@@ -202,13 +247,18 @@ public class ItemImplementation {
 
         } else if( isInDeepCaves(player) ) {
             BlockPos surface = findSurfaceAbove(player);
-            if(surface != null)
-                player.teleportTo( surface.getX() + 0.5, surface.getY(), surface.getZ() + 0.5);
+            if(surface == null) return false;
+
+            player.teleportTo( surface.getX() + 0.5, surface.getY(), surface.getZ() + 0.5);
 
             MESSAGER.sendBottomActionHint(
                 Component.translatable("item.hbs_traveler_rewards.escape_charm.success").getString()
             );
+
+        } else {
+            return false;
         }
+        return true;
     }
 
     /**
@@ -300,6 +350,46 @@ public class ItemImplementation {
         stack.getTag().putLong("LastingExpiration", expirationTick);
     }
 
+    /**
+     * Returns LastingDuration on the item, if applicable
+     * @param stack
+     * @return
+     */
+    @Nullable
+    public Long getLastingTimeRemaining(ItemStack stack) {
+        if(!stack.hasTag()) return null;
+
+        if (stack.getTag().contains("LastingDuration")) {
+            return stack.getTag().getLong("LastingDuration");
+        } else if(stack.getTag().contains("LastingExpiration")) {
+           return calculateLastingDuration(stack);
+        }
+        return null;
+    }
+
+    public Long calculateLastingDuration(ItemStack stack) {
+        Long expirationTick = getLastingExpiration(stack);
+        if(expirationTick == null) return null;
+
+        long currentTick = currentTicks();
+        return Math.max(0, expirationTick - currentTick);
+    }
+
+    public void setLastingDuration(ItemStack stack, long duration) {
+        stack.getOrCreateTag().putLong("LastingDuration", Math.max(0, duration));
+    }
+
+    @Nullable
+    public static Long getLastingDuration(ItemStack stack) {
+        if(!stack.hasTag()) return null;
+
+        if (stack.getTag().contains("LastingDuration")) {
+            return stack.getTag().getLong("LastingDuration");
+        }
+
+        return null;
+    }
+
     public void removeLastingMetaData(ItemStack stack) {
         if (stack.hasTag() && stack.getTag().contains("LastingExpiration")) {
             stack.getTag().remove("LastingExpiration");
@@ -310,21 +400,6 @@ public class ItemImplementation {
         }
     }
 
-    @Nullable
-    public Long getLastingTimeRemaining(ItemStack stack) {
-        if (stack.hasTag() && stack.getTag().contains("LastingDuration")) {
-            return stack.getTag().getLong("LastingDuration");
-        }
-        return null;
-    }
-
-    public void setLastingTimeRemaining(ItemStack stack, long expiringTick) {
-        if (!stack.hasTag()) {
-            stack.setTag(new CompoundTag());
-        }
-        long lastingDuration = expiringTick - currentTicks();
-        stack.getTag().putLong("LastingDuration", Math.max(0, lastingDuration));
-    }
 
     private long currentTicks() {
         return GENERAL_CONFIG.getTotalTickCountWithSleep(GeneralConfig.OVERWORLD);

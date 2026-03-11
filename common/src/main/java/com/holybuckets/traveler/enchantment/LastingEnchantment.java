@@ -30,7 +30,7 @@ public class LastingEnchantment extends Enchantment {
 
     @Override
     public int getMaxLevel() {
-        return 1; // Only one level
+        return 10; // Only one level
     }
 
     @Override

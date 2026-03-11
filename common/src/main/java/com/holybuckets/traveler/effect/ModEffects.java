@@ -10,10 +10,10 @@ import net.minecraft.world.effect.MobEffectCategory;
 
 public class ModEffects {
 
-    static DeferredObject<MobEffect> BLESSING_TRAVELER;
-    static DeferredObject<MobEffect> BLESSING_COOL_BREEZE;
-    static DeferredObject<MobEffect> BLESSING_WARM_WINDS;
-    static DeferredObject<MobEffect> BLESSING_BUILDERS_FLIGHT;
+    public static DeferredObject<MobEffect> BLESSING_TRAVELER;
+    public static DeferredObject<MobEffect> BLESSING_COOL_BREEZE;
+    public static DeferredObject<MobEffect> BLESSING_WARM_WINDS;
+    public static DeferredObject<MobEffect> BLESSING_BUILDERS_FLIGHT;
 
     public static void register() {
         BLESSING_TRAVELER = Balm.getRegistries().register(

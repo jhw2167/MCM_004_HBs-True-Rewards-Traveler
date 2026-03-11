@@ -1,6 +1,8 @@
 package com.holybuckets.traveler.item;
 
 import com.holybuckets.traveler.menu.PotionPotMenu;
+import net.blay09.mods.balm.api.Balm;
+import net.blay09.mods.balm.api.menu.BalmMenuProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -71,7 +73,7 @@ public class PotionPotItem extends InteractiveRewardItem {
         }
 
         final ItemStack menuStack = singleStack;
-        player.openMenu(new MenuProvider() {
+        Balm.getNetworking().openMenu(player, new BalmMenuProvider() {
             @Override
             public Component getDisplayName() {
                 return Component.translatable("container.hbs_traveler_rewards.potion_pot");

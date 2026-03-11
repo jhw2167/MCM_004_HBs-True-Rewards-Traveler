@@ -32,7 +32,7 @@ public class EmptyTotemItem extends InventoryHolderItem {
         Long lastingExpirationTick = IMPL.getLastingExpiration(itemToWrap);
         if(lastingExpirationTick != null) {
             IMPL.removeLastingMetaData(itemToWrap);
-            IMPL.setLastingTimeRemaining(itemToWrap, lastingExpirationTick);
+            IMPL.setLastingDuration(itemToWrap, lastingExpirationTick);
         }
         setStoredItem(totemStack, 0, itemToWrap);
     }
