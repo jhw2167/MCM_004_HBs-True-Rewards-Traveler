@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 public class BlessingTravelerPotionItem extends Item {
     
     private static final int[] LEVEL_WEIGHTS = {50, 30, 15, 5}; // Weights for levels 1, 2, 3, 4
-    private static final int DURATION = 2400; // 2 minutes in ticks
+    private static final int DURATION = 24000 / 2; // Half a Minecraft day
     
     private final Supplier<MobEffect> effect;
     private final float r, g, b;
@@ -38,32 +38,16 @@ public class BlessingTravelerPotionItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
         
-        if (!level.isClientSide) {
-            // Determine effect level based on weights
-            int effectLevel = getRandomLevel();
-            
-            // Apply the effect
+        if (!level.isClientSide)
+        {
+            int duration = DURATION / 8; //for dev
             MobEffectInstance effectInstance = new MobEffectInstance(
                 this.effect.get(),
-                DURATION,
-                effectLevel - 1, // Minecraft uses 0-based levels internally
-                false,
-                true,
-                true
+                duration,
+                1
             );
             
             player.addEffect(effectInstance);
-            
-            // Play sound
-            level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.5f, 1.0f);
-            
-            // Spawn particles
-            if (level instanceof ServerLevel serverLevel) {
-                spawnParticles(serverLevel, player);
-            }
-            
-            // Consume the item
             if (!player.getAbilities().instabuild) {
                 itemStack.shrink(1);
             }
@@ -72,26 +56,7 @@ public class BlessingTravelerPotionItem extends Item {
         return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide());
     }
     
-    private int getRandomLevel() {
-        Random random = new Random();
-        int totalWeight = 0;
-        for (int weight : LEVEL_WEIGHTS) {
-            totalWeight += weight;
-        }
-        
-        int randomValue = random.nextInt(totalWeight);
-        int currentWeight = 0;
-        
-        for (int i = 0; i < LEVEL_WEIGHTS.length; i++) {
-            currentWeight += LEVEL_WEIGHTS[i];
-            if (randomValue < currentWeight) {
-                return i + 1; // Return 1-based level
-            }
-        }
-        
-        return 1; // Fallback
-    }
-    
+
     private void spawnParticles(ServerLevel level, Player player) {
         DustParticleOptions particleOptions = new DustParticleOptions(
             new Vector3f(this.r, this.g, this.b), 1.0f

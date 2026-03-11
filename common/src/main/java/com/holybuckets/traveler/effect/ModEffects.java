@@ -36,14 +36,13 @@ public class ModEffects {
         
         BLESSING_BUILDERS_FLIGHT = Balm.getRegistries().register(
             BuiltInRegistries.MOB_EFFECT,
-            id -> new BlessingBuildersFlightEffect(),
-            id("blessing_builders_flight")
+            id -> new BuildersFlightEffect(),
+            id("builders_flight")
         );
     }
 
     public static class BlessingTravelerEffect extends MobEffect {
         public static final int COLOR = 0x98D982; // Green color
-        public static final int DURATION = 60*20*24; //Full minecraft day == 24 minutes == 60*20*24 ticks
         protected BlessingTravelerEffect() {
             super(MobEffectCategory.BENEFICIAL, COLOR);
         }
@@ -51,7 +50,6 @@ public class ModEffects {
 
     public static class BlessingCoolBreezeEffect extends MobEffect {
         public static final int COLOR = 0x5B9BD5; // Blue color
-        public static final int DURATION = 60*20*24; //Full minecraft day == 24 minutes == 60*20*24 ticks
         protected BlessingCoolBreezeEffect() {
             super(MobEffectCategory.BENEFICIAL, COLOR);
         }
@@ -59,16 +57,15 @@ public class ModEffects {
 
     public static class BlessingWarmWindsEffect extends MobEffect {
         public static final int COLOR = 0xE8853D; // Orange color
-        public static final int DURATION = 60*20*24; //Full minecraft day == 24 minutes == 60*20*24 ticks
         protected BlessingWarmWindsEffect() {
             super(MobEffectCategory.BENEFICIAL, COLOR);
         }
     }
 
-    public static class BlessingBuildersFlightEffect extends MobEffect {
-        public static final int COLOR = 0xC8C8D4; // Silver color
+    public static class BuildersFlightEffect extends MobEffect {
+        public static final int COLOR = 0xFFFFFF; // Silver color
         public static final int DURATION = 60*20*24; //Full minecraft day == 24 minutes == 60*20*24 ticks
-        protected BlessingBuildersFlightEffect() {
+        protected BuildersFlightEffect() {
             super(MobEffectCategory.BENEFICIAL, COLOR);
         }
     }
