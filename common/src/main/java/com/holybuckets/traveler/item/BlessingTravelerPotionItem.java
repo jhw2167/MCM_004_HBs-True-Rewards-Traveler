@@ -1,8 +1,6 @@
 package com.holybuckets.traveler.item;
 
 import net.blay09.mods.balm.api.DeferredObject;
-import net.minecraft.core.particles.DustParticleOptions;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -13,9 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import org.joml.Vector3f;
 
-import java.util.Random;
 import java.util.function.Supplier;
 
 public class BlessingTravelerPotionItem extends Item {
@@ -54,29 +50,5 @@ public class BlessingTravelerPotionItem extends Item {
         }
         
         return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide());
-    }
-    
-
-    private void spawnParticles(ServerLevel level, Player player) {
-        DustParticleOptions particleOptions = new DustParticleOptions(
-            new Vector3f(this.r, this.g, this.b), 1.0f
-        );
-        
-        // Spawn particles around the player
-        for (int i = 0; i < 20; i++) {
-            double offsetX = (level.random.nextDouble() - 0.5) * 2.0;
-            double offsetY = level.random.nextDouble() * 2.0;
-            double offsetZ = (level.random.nextDouble() - 0.5) * 2.0;
-            
-            level.sendParticles(
-                particleOptions,
-                player.getX() + offsetX,
-                player.getY() + offsetY,
-                player.getZ() + offsetZ,
-                1,
-                0.0, 0.0, 0.0,
-                0.0
-            );
-        }
     }
 }

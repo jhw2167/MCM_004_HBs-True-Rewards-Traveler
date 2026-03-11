@@ -7,6 +7,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.entity.LivingEntity;
 
 public class ModEffects {
 
@@ -67,6 +68,17 @@ public class ModEffects {
         public static final int DURATION = 60*20*24; //Full minecraft day == 24 minutes == 60*20*24 ticks
         protected BuildersFlightEffect() {
             super(MobEffectCategory.BENEFICIAL, COLOR);
+        }
+        
+        @Override
+        public void applyEffectTick(LivingEntity entity, int amplifier) {
+            // Explicitly do nothing to prevent any unintended side effects
+        }
+        
+        @Override
+        public boolean isDurationEffectTick(int duration, int amplifier) {
+            // Return false to prevent applyEffectTick from being called
+            return false;
         }
     }
 
