@@ -1,11 +1,13 @@
 package com.holybuckets.traveler.core;
 
+import com.holybuckets.foundation.CommonClass;
 import com.holybuckets.foundation.GeneralConfig;
 import com.holybuckets.foundation.HBUtil;
 import com.holybuckets.foundation.event.EventRegistrar;
 import com.holybuckets.foundation.event.custom.PlayerNearStructureEvent;
 import com.holybuckets.foundation.event.custom.ServerTickEvent;
 import com.holybuckets.foundation.event.custom.TickType;
+import com.holybuckets.foundation.event.custom.WakeUpAllPlayersEvent;
 import com.holybuckets.foundation.modelInterface.IManagedPlayer;
 import com.holybuckets.foundation.player.ManagedPlayer;
 import com.holybuckets.foundation.structure.StructureAPI;
@@ -13,6 +15,7 @@ import com.holybuckets.foundation.structure.StructureInfo;
 import com.holybuckets.foundation.structure.StructureManager;
 import com.holybuckets.traveler.LoggerProject;
 import com.holybuckets.traveler.TravelerRewardsMain;
+import com.holybuckets.traveler.effect.ModEffects;
 import com.holybuckets.traveler.enchantment.ModEnchantments;
 import com.holybuckets.traveler.item.ModItems;
 import io.netty.util.collection.IntObjectHashMap;
@@ -28,6 +31,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -35,7 +41,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
@@ -82,6 +87,8 @@ public class ManagedTraveler implements IManagedPlayer {
     private StructureInfo closestStructureInfo;
     private DeathLocation lastDeathLocation; // Death location tracking for Savior Orb
     boolean inventoryOpened;
+    boolean damagedToday;
+    boolean usingBuildersFlight;
 
     // Statistics
     private int totalDeaths;
@@ -124,6 +131,12 @@ public class ManagedTraveler implements IManagedPlayer {
         reg.registerOnPlayerNearStructure(null, ManagedTraveler::onPlayerNearStructure);
         reg.registerOnServerTick(TickType.ON_SINGLE_TICK, ManagedTraveler::onServerTick);
         reg.registerOnTossItem(ManagedTraveler::onPlayerTossItem);
+
+        reg.registerOnWakeUpAllPlayers(ManagedTraveler::onPlayersWakeUp);
+    }
+
+    private static void onPlayersWakeUp(WakeUpAllPlayersEvent wakeUpAllPlayersEvent) {
+        TRAVELERS.forEach((id, traveler) -> traveler.handlePlayerWakeUp());
     }
 
     public static void useSoulboundTablet(ServerPlayer serverPlayer, InteractionHand hand, ItemStack stack)
@@ -336,16 +349,6 @@ public class ManagedTraveler implements IManagedPlayer {
         );
     }
 
-    private void applyWarriorRitualBonusOnTick()
-    {
-        if(player.getAttributes() == null) return;
-        if(player.getAttributes().getInstance(Attributes.ATTACK_SPEED) == null) return;
-
-        if(lastWarriorRitual == warriorTabletsUsed) return;
-        ITEM_IMPLEMENTATION.setWarriorRitualBonus(player, warriorTabletsUsed);
-        lastWarriorRitual = warriorTabletsUsed;
-    }
-
     //** EVENT HANDLERS
 
 
@@ -539,6 +542,17 @@ public class ManagedTraveler implements IManagedPlayer {
         // Not needed for traveler rewards
     }
 
+    @Override
+    public void handlePlayerDamage(Player player, float damageAmount)
+    {
+        if(player != this.player) return;
+        damagedToday = true;
+    }
+
+    public void handlePlayerWakeUp() {
+        damagedToday = false;
+    }
+
     /**
      * Restores soulbound items to player inventory after respawn
      */
@@ -560,10 +574,14 @@ public class ManagedTraveler implements IManagedPlayer {
         soulboundItemsToReturn.clear();
     }
 
+    /*
+        ON TICK EVENT LOOPS
+     */
+
     /**
      * Checks all inventory slots for items of note
      */
-    void takeInventory()
+    void takeInventoryOnTick()
     {
         //Iterate over the players entire inventory
         mobWards.clear();
@@ -613,7 +631,7 @@ public class ManagedTraveler implements IManagedPlayer {
         inventoryOpened = player.hasContainerOpen();
     }
 
-    public void testClosestStructure()
+    public void testClosestStructureOnTick()
     {
         BlockPos pPos = player.blockPosition();
         if(closestStructureInfo == null) {
@@ -629,6 +647,70 @@ public class ManagedTraveler implements IManagedPlayer {
             closestStructureInfo = null;
             structureEntryPos = pPos.offset(0,1,0);
         }
+    }
+
+    private void applyWarriorRitualBonusOnTick()
+    {
+        if(player.getAttributes() == null) return;
+        if(player.getAttributes().getInstance(Attributes.ATTACK_SPEED) == null) return;
+
+        if(lastWarriorRitual == warriorTabletsUsed) return;
+        ITEM_IMPLEMENTATION.setWarriorRitualBonus(player, warriorTabletsUsed);
+        lastWarriorRitual = warriorTabletsUsed;
+    }
+
+    private void updateLastingItemsOnTick() {
+        ITEM_IMPLEMENTATION.checkLastingEnchantments(getServerPlayer(), lastingItems);
+    }
+
+    private void wardMobsOnTick() {
+        ITEM_IMPLEMENTATION.wardMobs(getServerPlayer(), mobWards, getNearbyEntities());
+    }
+
+
+    private void applyBlessingsOnTick()
+    {
+        //if player is in creative mode, return
+        if(getServerPlayer().isCreative()) return;
+
+        Set<MobEffect> effects = getServerPlayer().getActiveEffectsMap().keySet();
+        if(effects.contains(ModEffects.BLESSING_TRAVELER.get())) {
+            //Waystones Free
+            //Cool Breeze, Warm Winds
+        }
+
+        if(effects.contains(ModEffects.BUILDERS_FLIGHT.get()))
+        {
+            boolean canFly = getServerPlayer().getAbilities().mayfly;
+            if(usingBuildersFlight)
+            {
+                if(canFly && damagedToday) {
+                    //add slow falling effect
+                    MobEffectInstance slowFalling = new MobEffectInstance(MobEffects.SLOW_FALLING, 200, 0, false, true);
+                    getServerPlayer().addEffect(slowFalling);
+                    String message = Component.translatable("effect.hbs_traveler_rewards.builders_flight_potion.desc_lost").getString();
+                    CommonClass.MESSAGER.sendBottomActionHint(player, message);
+
+                    getServerPlayer().getAbilities().mayfly = false;
+                    player.onUpdateAbilities();
+                    usingBuildersFlight = false;
+                }
+
+                MobEffectInstance bFlight = getServerPlayer().getEffect(ModEffects.BUILDERS_FLIGHT.get());
+                if(bFlight.getDuration() < 40) {
+                    //apply slowFalling
+                    MobEffectInstance slowFalling = new MobEffectInstance(MobEffects.SLOW_FALLING, 200, 0, false, true);
+                    getServerPlayer().addEffect(slowFalling);
+                }
+            }
+
+            if(!canFly && !damagedToday) {
+                getServerPlayer().getAbilities().mayfly = true;
+                player.onUpdateAbilities();
+                usingBuildersFlight = true;
+            }
+        }
+
     }
 
 
@@ -724,25 +806,18 @@ public class ManagedTraveler implements IManagedPlayer {
         for (ManagedTraveler traveler : TRAVELERS.values()) {
             if(traveler.player == null) continue;
             if (traveler.player instanceof ServerPlayer serverPlayer) {
-                traveler.takeInventory();
+                traveler.takeInventoryOnTick();
                 traveler.applyWarriorRitualBonusOnTick();
-                traveler.testClosestStructure();
-                ITEM_IMPLEMENTATION.checkLastingEnchantments(serverPlayer, traveler.lastingItems);
-                ITEM_IMPLEMENTATION.wardMobs(serverPlayer, traveler.mobWards, traveler.getNearbyEntities());
+                traveler.testClosestStructureOnTick();
+                traveler.updateLastingItemsOnTick();
+                traveler.wardMobsOnTick();
+                traveler.applyBlessingsOnTick();
             }
         }
     }
 
-    private static int clientCount=0;
-    private static void onClientTick() {
-        if (clientCount++ < 10) return;
-            clientCount = 0;
 
-        if(localTraveler != null)
-            localTraveler.takeInventory();
-    }
-
-        /**
+    /**
          * Player Drop Item
          */
     private static void onPlayerTossItem(TossItemEvent event)
@@ -762,7 +837,6 @@ public class ManagedTraveler implements IManagedPlayer {
     }
 
     public static final long DAY_LENGTH_TICKS = 24000;
-
     public void appendLastingTooltip(ItemStack stack, List<Component> tooltip)
     {
         //clientSide default

@@ -1,8 +1,7 @@
 package com.holybuckets.traveler.item;
 
+import com.holybuckets.traveler.effect.ModEffects;
 import net.blay09.mods.balm.api.DeferredObject;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffect;
@@ -40,7 +39,7 @@ public class BlessingTravelerPotionItem extends Item {
             MobEffectInstance effectInstance = new MobEffectInstance(
                 this.effect.get(),
                 duration,
-                1
+                0, true, false, true
             );
             
             player.addEffect(effectInstance);

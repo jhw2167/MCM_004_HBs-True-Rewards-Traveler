@@ -38,12 +38,13 @@ public class CommonClass {
         Balm.getConfig().registerConfig(TravelerRewardsConfig.class);
         TravelerRewardsMain.INSTANCE = new TravelerRewardsMain();
 
+        ModEnchantments.register();
+        ModEffects.register();
+        ModMenus.initialize(Balm.getMenus());
         ModBlocks.initialize(Balm.getBlocks());
         ModBlockEntities.initialize(Balm.getBlockEntities());
         ModItems.initialize(Balm.getItems());
-        ModMenus.initialize(Balm.getMenus());
-        ModEnchantments.register();
-        ModEffects.register();
+
 
         CommandList.register();
         BalmEventRegister.registerEvents();
