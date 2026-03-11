@@ -35,7 +35,7 @@ public class BlessingTravelerPotionItem extends Item {
         
         if (!level.isClientSide)
         {
-            int duration = DURATION / 8; //for dev
+            int duration = DURATION / 2; //for dev
             MobEffectInstance effectInstance = new MobEffectInstance(
                 this.effect.get(),
                 duration,
