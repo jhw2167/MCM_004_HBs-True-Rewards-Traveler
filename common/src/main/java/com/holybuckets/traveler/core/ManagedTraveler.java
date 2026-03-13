@@ -349,6 +349,23 @@ public class ManagedTraveler implements IManagedPlayer {
         );
     }
 
+    public boolean hasTravelersBlessing() {
+        return player.hasEffect(ModEffects.BLESSING_TRAVELER.get());
+    }
+    public boolean hasCoolBreezeBlessing() {
+        return player.hasEffect(ModEffects.BLESSING_COOL_BREEZE.get());
+    }
+    public boolean hasWarmWindsBlessing() {
+        return player.hasEffect(ModEffects.BLESSING_WARM_WINDS.get());
+    }
+    public boolean isUsingBuildersFlight() {
+        return usingBuildersFlight;
+    }
+
+
+
+
+
     //** EVENT HANDLERS
 
 
