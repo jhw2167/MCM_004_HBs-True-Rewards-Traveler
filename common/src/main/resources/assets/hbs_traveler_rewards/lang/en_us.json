@@ -121,5 +121,8 @@
   "item.hbs_traveler_rewards.builders_flight_potion": "Builder's Flight",
   "effect.hbs_traveler_rewards.builders_flight_potion.desc": "Grants Creative Flight until taking damage today. Once lost, you must sleep in a bed to regain flight",
   "item.hbs_traveler_rewards.builders_flight_potion.desc": "Grants Creative Flight until taking damage today. Once lost, you must sleep in a bed to regain flight",
-  "effect.hbs_traveler_rewards.builders_flight_potion.desc_lost": "Builder's Flight lost!"
+  "effect.hbs_traveler_rewards.builders_flight_potion.desc_lost": "Builder's Flight lost!",
+
+
+
 }
