@@ -20,6 +20,8 @@ import com.holybuckets.traveler.enchantment.ModEnchantments;
 import com.holybuckets.traveler.item.ModItems;
 import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
+import net.blay09.mods.balm.api.Balm;
+import net.blay09.mods.balm.api.event.BalmEvents;
 import net.blay09.mods.balm.api.event.EventPriority;
 import net.blay09.mods.balm.api.event.TossItemEvent;
 import net.blay09.mods.balm.api.event.server.ServerStartingEvent;
@@ -353,10 +355,12 @@ public class ManagedTraveler implements IManagedPlayer {
         return player.hasEffect(ModEffects.BLESSING_TRAVELER.get());
     }
     public boolean hasCoolBreezeBlessing() {
-        return player.hasEffect(ModEffects.BLESSING_COOL_BREEZE.get());
+        return player.hasEffect(ModEffects.BLESSING_COOL_BREEZE.get())
+        || hasTravelersBlessing();
     }
     public boolean hasWarmWindsBlessing() {
-        return player.hasEffect(ModEffects.BLESSING_WARM_WINDS.get());
+        return player.hasEffect(ModEffects.BLESSING_WARM_WINDS.get())
+        || hasTravelersBlessing();
     }
     public boolean isUsingBuildersFlight() {
         return usingBuildersFlight;
@@ -687,6 +691,8 @@ public class ManagedTraveler implements IManagedPlayer {
 
     private void applyBlessingsOnTick()
     {
+        Balm.getEvents().fireEvent( new ManagedTravelerTickEvent(this));
+
         //if player is in creative mode, return
         if(getServerPlayer().isCreative()) return;
 

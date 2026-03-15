@@ -148,12 +148,12 @@ public class ModItems {
         items.registerItem(() -> blessingCoolBreezePotion = new BlessingTravelerPotionItem(
             ModEffects.BLESSING_COOL_BREEZE, 0x5B9BD5,
             new Item.Properties().stacksTo(16)
-        ), id("blessing_cool_breeze_potion"), null);
+        ), id("blessing_cool_breeze_potion"));
 
         items.registerItem(() -> blessingWarmWindsPotion = new BlessingTravelerPotionItem(
             ModEffects.BLESSING_WARM_WINDS, 0xE8853D,
             new Item.Properties().stacksTo(16)
-        ), id("blessing_warm_winds_potion"), null);
+        ), id("blessing_warm_winds_potion") );
 
         items.registerItem(() -> blessingBuildersFlightPotion = new BlessingTravelerPotionItem(
             ModEffects.BUILDERS_FLIGHT,

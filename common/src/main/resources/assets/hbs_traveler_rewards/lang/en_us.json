@@ -123,13 +123,13 @@
   "item.hbs_traveler_rewards.builders_flight_potion.desc": "Grants Creative Flight until taking damage today. Once lost, you must sleep in a bed to regain flight",
   "effect.hbs_traveler_rewards.builders_flight_potion.desc_lost": "Builder's Flight lost!",
 
-  "effect.hbs_traveler_rewards.blessing_cool_breeze": "Blessing of the Cool Breeze",
-  "item.hbs_traveler_rewards.blessing_cool_breeze_potion": "Blessing of the Cool Breeze",
+  "effect.hbs_traveler_rewards.blessing_cool_breeze": "Blessing of Cool Breeze",
+  "item.hbs_traveler_rewards.blessing_cool_breeze_potion": "Blessing of Cool Breeze",
   "effect.hbs_traveler_rewards.blessing_cool_breeze_potion.desc": "Blessing keeps you cool in warm climates",
   "item.hbs_traveler_rewards.blessing_cool_breeze_potion.desc": "Blessing keeps you cool in warm climates",
 
-  "effect.hbs_traveler_rewards.blessing_warm_winds": "Blessing of the Warm Winds",
-  "item.hbs_traveler_rewards.blessing_warm_winds_potion": "Blessing of the Warm Winds",
+  "effect.hbs_traveler_rewards.blessing_warm_winds": "Blessing of Warm Winds",
+  "item.hbs_traveler_rewards.blessing_warm_winds_potion": "Blessing of Warm Winds",
   "effect.hbs_traveler_rewards.blessing_warm_winds_potion.desc": "Blessing keeps you warm in cold climates",
   "item.hbs_traveler_rewards.blessing_warm_winds_potion.desc": "Blessing keeps you warm in cold climates"
 
